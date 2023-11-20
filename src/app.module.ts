@@ -11,9 +11,9 @@ import { PostModule } from './feature/post/post.module';
       type: 'mysql', // 连接mysql数据库
       host: 'localhost',
       port: 3306,
-      username: '用户名',
-      password: '数据密码',
-      database: '数据库名',
+      username: 'root',
+      password: 'admin123',
+      database: 'my_db_01',
       // 自动加载实体
       autoLoadEntities: true,
       // 手动导入
