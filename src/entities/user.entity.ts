@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "./post.entity"; 
 
 @Entity()
@@ -14,6 +14,12 @@ export class User{
     // 密码
     @Column()
     password:string;
+
+    @CreateDateColumn()
+    creatorTime: Date;
+
+    @UpdateDateColumn()
+    lastModifyTime: Date;
 
     // 用户管理文章 多个文章对应一个用户
     @OneToMany(() => Post,post=>post.user)
