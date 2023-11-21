@@ -25,6 +25,11 @@ export class UserService {
     return user
   }
 
+  /**
+   * 通过id查询用户
+   *
+   * @param id 用户id
+   */
   async findOne(id:number):Promise<User|undefined>{
 
     const user = await this.userRepository.findOne({
@@ -34,5 +39,22 @@ export class UserService {
     });
 
     return user;
+  }
+
+  /**
+   * 检验是否存在该用户
+   *
+   * @param user 用户信息
+   */
+  async getUser(id: number, account: string): Promise<User> {
+
+    const existUser = await this.userRepository.findOne({
+        where:{
+            id,
+            account
+        }
+    });
+    
+    return existUser;
   }
 }

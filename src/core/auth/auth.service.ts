@@ -30,12 +30,18 @@ export class AuthService {
     }
   }
 
-  // 获取用户信息
+  // 获取用户信息及权限
   async getProfile(id: number) {
     const userInfo = await this.userService.findOne(id);
 
-    if (userInfo) return userInfo
+    // const Role = await getConnection()
+    //   .createQueryBuilder<RoleEntity>(RoleEntity, 'role')
+    //   .where('role.id = :id', { id: user.roleId })
+    //   .leftJoinAndSelect('role.menus', 'menus')
+    //   .getOne();
     
-    return null
+    return {
+      userInfo
+    }
   }
 }

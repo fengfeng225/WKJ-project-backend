@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionFilter } from './core/filters/all-exception.filter';
 import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -14,10 +15,14 @@ async function bootstrap() {
   // 全局拦截器
   app.useGlobalInterceptors(new HttpReqTransformInterceptor())
 
+  // 全局管道
+  app.useGlobalPipes(new ValidationPipe());
+
   const options = new DocumentBuilder()
     .setTitle('防互窜管理系统')
     .setDescription('防互窜管理系统项目后端搭建')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
 
   const documents = SwaggerModule.createDocument(app, options);
