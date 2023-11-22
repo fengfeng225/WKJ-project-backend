@@ -16,11 +16,11 @@ export class AllExceptionFilter implements ExceptionFilter {
       .json({
         code: status,
         message:exception.message,
-        data:null,
-        timestamp: new Date().toISOString(),
-        path: request.url,
         success:false,
-        tips:"自己拦截的错误请求"
+        data:null,
+        timestamp: Date.now(),
+        // path: request.url,
+        // tips:"无效的请求"
       });
   }
 }

@@ -6,13 +6,13 @@ export class LoginUserDTO{
         example:"admin",
         description:"账户名"
     })
-    @IsNotEmpty({ message: '用户名不能为空' })
+    @IsNotEmpty()
     account:string;
 
     @ApiProperty({
-        example:"admin",
+        example:"123456",
         description:"用户密码"
     })
-    @IsNotEmpty({ message: '密码不能为空' })
+    @IsNotEmpty()
     password:string;
 }

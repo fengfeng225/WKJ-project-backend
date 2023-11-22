@@ -15,7 +15,7 @@ export class HttpReqTransformInterceptor<T>
       return {
         data,
         code:200,
-        msg:"操作成功",
+        message:"操作成功",
         success:true
       }
     }))

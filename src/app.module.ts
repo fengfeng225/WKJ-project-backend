@@ -3,11 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './feature/user/user.module';
-import { PostModule } from './feature/post/post.module';
 import { AuthModule } from './core/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
 import { ConfigModule, ConfigService  } from '@nestjs/config';
+import { MenuController } from './feature/menu/menu.controller';
+import { MenuModule } from './feature/menu/menu.module';
+import { RoleModule } from './feature/role/role.module';
+import { PermissionModule } from './feature/permission/permission.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -26,15 +29,17 @@ import envConfig from 'config/envConfig';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        synchronize: true,
+        synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
         autoLoadEntities: true,
       })
     }),
     UserModule,
-    PostModule,
     AuthModule,
+    MenuModule,
+    RoleModule,
+    PermissionModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, MenuController],
   providers: [
     AppService,
     {
