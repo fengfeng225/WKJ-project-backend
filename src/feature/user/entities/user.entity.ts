@@ -2,13 +2,12 @@ import {
     Column,
     Entity,
     PrimaryGeneratedColumn,
-    ManyToMany,
-    JoinTable,
+    OneToMany,
     CreateDateColumn,
     UpdateDateColumn,
     Timestamp
 } from "typeorm";
-import { Role } from '../../role/entities/role.entity'
+import { User_role_relation } from 'src/entities/user_role_relation.entity'
 
 @Entity()
 export class User{
@@ -46,9 +45,6 @@ export class User{
     @UpdateDateColumn()
     lastModifyTime: Timestamp;
 
-    @ManyToMany(() => Role)
-    @JoinTable({
-        name: 'user_role_relation'
-    })
-    roles: Role[];
+    @OneToMany(() => User_role_relation, user_role_relation => {user_role_relation.user})
+    public user_role_relation: User_role_relation[];
 }

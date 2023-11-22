@@ -2,13 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Timestamp
 } from 'typeorm';
-import { Permission } from '../../permission/entities/permission.entity';
+import { User_role_relation } from 'src/entities/user_role_relation.entity'
 
 @Entity()
 export class Role {
@@ -40,9 +39,6 @@ export class Role {
   @UpdateDateColumn()
   lastModifyTime: Timestamp;
 
-  @ManyToMany(() => Permission)
-  @JoinTable({
-    name: 'role_permission_relation'
-  })
-  permissions: Permission[];
+  @OneToMany(() => User_role_relation, (user_role_relation) => {user_role_relation.role})
+  public user_role_relation: User_role_relation[];
 }
