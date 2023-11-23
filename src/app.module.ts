@@ -7,10 +7,8 @@ import { AuthModule } from './core/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
 import { ConfigModule, ConfigService  } from '@nestjs/config';
-import { MenuController } from './feature/menu/menu.controller';
-import { MenuModule } from './feature/menu/menu.module';
 import { RoleModule } from './feature/role/role.module';
-import { PermissionModule } from './feature/permission/permission.module';
+import { MenuModule } from './feature/menu/menu.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -36,10 +34,9 @@ import envConfig from 'config/envConfig';
     UserModule,
     AuthModule,
     MenuModule,
-    RoleModule,
-    PermissionModule,
+    RoleModule
   ],
-  controllers: [AppController, MenuController],
+  controllers: [AppController],
   providers: [
     AppService,
     {

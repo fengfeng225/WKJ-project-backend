@@ -2,12 +2,13 @@ import {
     Column,
     Entity,
     PrimaryGeneratedColumn,
-    OneToMany,
+    ManyToMany,
     CreateDateColumn,
     UpdateDateColumn,
-    Timestamp
+    Timestamp,
+    JoinTable
 } from "typeorm";
-import { User_role_relation } from 'src/entities/user_role_relation.entity'
+import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class User{
@@ -29,22 +30,34 @@ export class User{
     password:string;
 
     @Column({
+        unique: true,
         length: 50
     })
     username: String;
 
-    @Column()
+    @Column({
+        default: 1
+    })
     enabledMark: number;
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     sortCode: number;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        type: 'timestamp'
+    })
     creatorTime: Timestamp;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({
+        type: 'timestamp'
+    })
     lastModifyTime: Timestamp;
 
-    @OneToMany(() => User_role_relation, user_role_relation => {user_role_relation.user})
-    public user_role_relation: User_role_relation[];
+    @ManyToMany(() => Role, role => role.users)
+    @JoinTable({
+        name: 'user_role_relation'
+    })
+    roles: Role[];
 }

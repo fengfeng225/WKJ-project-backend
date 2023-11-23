@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/feature/user/entities/user.entity';
 import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { Role } from '../role/entities/role.entity';
+import { Button_permission } from 'src/entities/button_permission.entity';
+import { Column_permission } from 'src/entities/column_permission.entity';
 
 @Injectable()
 export class UserService {
@@ -41,20 +44,8 @@ export class UserService {
     return user;
   }
 
-  /**
-   * 检验是否存在该用户
-   *
-   * @param user 用户信息
-   */
-  async getUser(id: number, account: string): Promise<User> {
+  // 添加测试数据
+  async initData() {
 
-    const existUser = await this.userRepository.findOne({
-        where:{
-            id,
-            account
-        }
-    });
-    
-    return existUser;
   }
 }

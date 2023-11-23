@@ -15,7 +15,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       .status(status)
       .json({
         code: status,
-        message:exception.message,
+        message: exception.message,
         success:false,
         data:null,
         timestamp: Date.now(),

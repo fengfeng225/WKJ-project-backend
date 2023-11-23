@@ -1,9 +1,8 @@
-import { Controller, UseGuards, Post, Body, Get, Request, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { AuthService } from './auth.service'
-import { AuthGuard } from '@nestjs/passport';
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginUserDTO } from 'src/core/auth/dto/login-user.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { RequireLogin } from 'src/common/decorators/require-login';
 
 @ApiTags('auth')
 @ApiBearerAuth()
@@ -13,16 +12,13 @@ export class AuthController {
 
   // 登录接口
   @ApiOperation({summary:"用户登录"})
-  @Public()
-  @UseGuards(AuthGuard('local'))
+  @RequireLogin()
   @Post('login')
   @ApiBody({
     type:LoginUserDTO
   })
-  login(@Body() LoginUserDTO: LoginUserDTO, @Request() req){
-    console.log(123);
-    
-    return this.authService.login(req.user);
+  login(@Body() loginUserDTO: LoginUserDTO){
+    return this.authService.login(loginUserDTO);
   }
 
   // 查询个人信息

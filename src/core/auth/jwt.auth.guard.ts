@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable, HttpException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
+import { Require_Login_Key } from 'src/common/decorators/require-login';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -12,12 +12,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
   canActivate(context: ExecutionContext) {
     // 在这里添加自定义的认证逻辑
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY,[
+    const requirdLogin = this.reflector.getAllAndOverride<boolean>(Require_Login_Key,[
       context.getHandler(),
       context.getClass()
     ])
     // 一旦使用注解，就通过
-    if(isPublic) return true
+    if(requirdLogin) return true
     
     // 例如调用 super.logIn(request) 来建立一个session
     return super.canActivate(context);
