@@ -27,8 +27,8 @@ import envConfig from 'config/envConfig';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        // synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
-        synchronize: false,
+        synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
+        // synchronize: false,
         autoLoadEntities: true,
       })
     }),
