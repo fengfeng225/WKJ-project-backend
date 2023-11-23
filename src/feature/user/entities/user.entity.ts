@@ -25,7 +25,8 @@ export class User{
 
     // 密码
     @Column({
-        length: 50
+        length: 50,
+        default: 'e10adc3949ba59abbe56e057f20f883e'
     })
     password:string;
 

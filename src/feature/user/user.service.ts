@@ -11,7 +11,9 @@ export class UserService {
   // 注入 一个操作数据表
   constructor(
     @InjectRepository(User)
-    private readonly userRepository:Repository<User>
+    private readonly userRepository:Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository:Repository<Role>
   ){}
 
   /**
@@ -46,6 +48,27 @@ export class UserService {
 
   // 添加测试数据
   async initData() {
+    const user1 = new User()
+    user1.account = 'zs'
+    user1.username = 'zs'
 
+    const user2 = new User()
+    user2.account = 'ls'
+    user2.username = 'ls'
+
+    const role1 = new Role()
+    role1.fullName = '角色1'
+    role1.entityCode = 'role1'
+
+    const role2 = new Role()
+    role2.fullName = '角色2'
+    role2.entityCode = 'role2'
+
+    user1.roles = [role1, role2]
+    user2.roles = [role2]
+
+
+    await this.userRepository.save([user1, user2])
+    await this.roleRepository.save([role1, role2])
   }
 }
