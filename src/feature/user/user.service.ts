@@ -49,14 +49,14 @@ export class UserService {
 
   async getPermissionListByUserId(userId:number) {
 
-    const flatMenus = await this.menuRepository
+    const menus = await this.menuRepository
     .createQueryBuilder('menu')
     .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
     .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
     .where('urr.userId = :userId', { userId })
+    .leftJoinAndSelect('menu.children', 'children')
+    .andWhere('menu.parentId IS NULL')
     .getMany();
-
-    console.log(flatMenus);
     
     
     return {
