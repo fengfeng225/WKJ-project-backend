@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get, Request, UseInterceptors, ClassSerializerI
 import { AuthService } from './auth.service'
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginUserDTO } from 'src/core/auth/dto/login-user.dto';
-import { RequireLogin } from 'src/guards/require-login';
+import { RequireLogin } from 'src/decorators/require-login';
 
 @ApiTags('auth')
 @ApiBearerAuth()

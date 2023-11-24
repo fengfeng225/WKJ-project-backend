@@ -49,8 +49,6 @@ export class AuthService {
   }
 
   async logout(userId: number) {
-    return {
-      
-    }
+    return null
   }
 }
