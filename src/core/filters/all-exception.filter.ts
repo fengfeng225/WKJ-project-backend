@@ -19,8 +19,7 @@ export class AllExceptionFilter implements ExceptionFilter {
         success:false,
         data:null,
         timestamp: Date.now(),
-        // path: request.url,
-        // tips:"无效的请求"
+        // path: request.url
       });
   }
 }

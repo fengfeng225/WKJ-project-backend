@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { UserService } from './user.service';
-import { RequireLogin } from 'src/common/decorators/require-login';
+import { RequireLogin } from 'src/guards/require-login';
 
 @Controller('user')
 export class UserController {

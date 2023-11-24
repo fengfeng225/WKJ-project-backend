@@ -34,9 +34,12 @@ export class AuthService {
   }
 
   // 获取用户信息及权限
-  async getProfile(id: number) {
-    const userInfo = await this.userService.findOne(id);
+  async getProfile(userId: number) {
+    const userInfo = await this.userService.findOne(userId);
 
+    if (!userInfo) throw new UnauthorizedException('用户不存在');
+
+    const { menuList, permissionList } = await this.userService.getPermissionListByUserId(userId)
     // const Role = await getConnection()
     //   .createQueryBuilder<RoleEntity>(RoleEntity, 'role')
     //   .where('role.id = :id', { id: user.roleId })
@@ -44,7 +47,9 @@ export class AuthService {
     //   .getOne();
     
     return {
-      userInfo
+      userInfo,
+      menuList,
+      permissionList
     }
   }
 }

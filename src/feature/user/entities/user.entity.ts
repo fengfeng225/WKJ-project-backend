@@ -3,11 +3,10 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     ManyToMany,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Timestamp,
-    JoinTable
+    JoinTable,
+    Timestamp
 } from "typeorm";
+import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
@@ -16,7 +15,7 @@ export class User{
     @PrimaryGeneratedColumn()
     id:number;
 
-    // 账户名类型
+    // 账户
     @Column({
         unique: true,
         length: 50
@@ -24,12 +23,14 @@ export class User{
     account:string;
 
     // 密码
+    @Exclude()
     @Column({
         length: 50,
         default: 'e10adc3949ba59abbe56e057f20f883e'
     })
     password:string;
 
+    // 用户名
     @Column({
         unique: true,
         length: 50
@@ -37,26 +38,25 @@ export class User{
     username: String;
 
     @Column({
+        type: 'int',
         default: 1
     })
     enabledMark: number;
 
     @Column({
+        type: 'int',
         nullable: true
     })
     sortCode: number;
 
-    @CreateDateColumn({
-        type: 'timestamp'
-    })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
     creatorTime: Timestamp;
 
-    @UpdateDateColumn({
-        type: 'timestamp'
-    })
+    @Exclude()
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
     lastModifyTime: Timestamp;
 
-    @ManyToMany(() => Role, role => role.users)
+    @ManyToMany(() => Role, { cascade: true })
     @JoinTable({
         name: 'user_role_relation'
     })

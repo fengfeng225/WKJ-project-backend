@@ -12,5 +12,6 @@ import { Column_permission } from 'src/entities/column_permission.entity';
   ],
   controllers: [MenuController],
   providers: [MenuService],
+  exports: [TypeOrmModule]
 })
 export class MenuModule {}

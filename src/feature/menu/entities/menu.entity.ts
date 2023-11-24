@@ -1,13 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
-  JoinColumn,
+  JoinTable,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  Timestamp,
   ManyToMany
 } from 'typeorm';
 import { Button_permission } from 'src/entities/button_permission.entity';
@@ -20,11 +17,8 @@ export class Menu {
   id: number;
 
   @Column({
-    default: -1
+    type: 'int'
   })
-  parentId: number;
-
-  @Column()
   type: number;
 
   @Column({
@@ -46,35 +40,35 @@ export class Menu {
 
   @Column({
     nullable: true,
-    length: 50
+    type: 'longtext'
   })
   urlAddress: string;
 
   @Column({
+    type: 'int',
     default: 1
   })
   enabledMark: number;
 
   @Column({
+    type: 'int',
     nullable: true
   })
   sortCode: number;
 
-  @CreateDateColumn({
-    type: 'timestamp'
-  })
-  creatorTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
+  creatorTime: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp'
-  })
-  lastModifyTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
+  lastModifyTime: Date;
 
-  @ManyToOne(() => Menu, menu => menu.children, { nullable: true })
-  @JoinColumn({ name: 'parentId' })
+  @Column({ nullable: true })
+  parentId: number;
+
+  @ManyToOne(() => Menu, menu => menu.children)
   parent: Menu;
 
-  @ManyToOne(() => Menu, menu => menu.parent)
+  @OneToMany(() => Menu, menu => menu.parent)
   children: Menu[];
 
   @OneToMany(() => Button_permission, (button) => button.menu)
@@ -83,6 +77,9 @@ export class Menu {
   @OneToMany(() => Column_permission, (column) => column.menu)
   columns: Column_permission[]
 
-  @ManyToMany(() => Role, (role) => {role.menus})
+  @ManyToMany(() => Role, { cascade: true })
+  @JoinTable({
+    name: 'role_menu_relation'
+  })
   roles: Role[];
 }

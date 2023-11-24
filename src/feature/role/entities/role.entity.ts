@@ -1,11 +1,8 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   ManyToMany,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  Timestamp,
   JoinTable
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
@@ -31,48 +28,38 @@ export class Role {
   entityCode: string;
 
   @Column({
+    type: 'text',
     nullable: true
   })
   description: string;
 
   @Column({
+    type: 'int',
     default: 1
   })
   enabledMark: number;
 
   @Column({
+    type: 'int',
     nullable: true
   })
   sortCode: number;
 
-  @CreateDateColumn({
-    type: 'timestamp'
-  })
-  creatorTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
+  creatorTime: Date;
 
-  @UpdateDateColumn({
-      type: 'timestamp'
-  })
-  lastModifyTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
+  lastModifyTime: Date;
 
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
   @ManyToMany(() => Menu, (menu) => menu.roles)
-  @JoinTable({
-    name: 'role_menu_relation'
-  })
   menus: Menu[];
 
   @ManyToMany(() => Button_permission, (button) => button.roles)
-  @JoinTable({
-    name: 'role_button_relation'
-  })
   buttons: Button_permission[];
 
   @ManyToMany(() => Column_permission, (column) => column.roles)
-  @JoinTable({
-    name: 'role_column_relation'
-  })
   columns: Column_permission[];
 }

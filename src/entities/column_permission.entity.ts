@@ -1,12 +1,10 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
-  Timestamp,
   ManyToOne,
-  ManyToMany
+  ManyToMany,
+  JoinTable
 } from 'typeorm';
 import { Menu } from '../feature/menu/entities/menu.entity';
 import { Role } from '../feature/role/entities/role.entity';
@@ -17,40 +15,39 @@ export class Column_permission {
   id: number;
 
   @Column({
-    unique: true,
     length: 50
   })
   fullName: string;
 
   @Column({
-    unique: true,
     length: 50
   })
   entityCode: string;
 
   @Column({
+    type: 'int',
     default: 1
   })
   enabledMark: number;
 
   @Column({
+    type: 'int',
     nullable: true
   })
   sortCode: number;
 
-  @CreateDateColumn({
-    type: 'timestamp'
-  })
-  creatorTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
+  creatorTime: Date;
 
-  @UpdateDateColumn({
-    type: 'timestamp'
-  })
-  lastModifyTime: Timestamp;
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
+  lastModifyTime: Date;
 
   @ManyToOne(() => Menu, (menu) => menu.columns)
   menu: Menu
 
-  @ManyToMany(() => Role, (role) => role.columns)
+  @ManyToMany(() => Role, {cascade: true})
+  @JoinTable({
+    name: 'role_column_relation'
+  })
   roles: Role[];
 }
