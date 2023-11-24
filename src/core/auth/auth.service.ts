@@ -25,7 +25,7 @@ export class AuthService {
     const user = await this.validateUser(loginUserDTO.account, loginUserDTO.password);
     if (!user) throw new UnauthorizedException('用户名或密码错误');
 
-    const payload = {username:user.account,userId:user.id};
+    const payload = {account:user.account,userId:user.id};
     const token = this.jwtService.sign(payload)
 
     return {
@@ -34,22 +34,23 @@ export class AuthService {
   }
 
   // 获取用户信息及权限
-  async getProfile(userId: number) {
+  async getProfile(userId: number, account: string) {
     const userInfo = await this.userService.findOne(userId);
 
     if (!userInfo) throw new UnauthorizedException('用户不存在');
 
-    const { menuList, permissionList } = await this.userService.getPermissionListByUserId(userId)
-    // const Role = await getConnection()
-    //   .createQueryBuilder<RoleEntity>(RoleEntity, 'role')
-    //   .where('role.id = :id', { id: user.roleId })
-    //   .leftJoinAndSelect('role.menus', 'menus')
-    //   .getOne();
+    const { menuList = [], permissionList = [] } = await this.userService.getPermissionListByUserId(userId, account)
     
     return {
       userInfo,
       menuList,
       permissionList
+    }
+  }
+
+  async logout(userId: number) {
+    return {
+      
     }
   }
 }

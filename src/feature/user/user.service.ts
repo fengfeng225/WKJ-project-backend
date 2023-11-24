@@ -47,21 +47,48 @@ export class UserService {
     return user;
   }
 
-  async getPermissionListByUserId(userId:number) {
+  async getPermissionListByUserId(userId: number, account: string) {
+    let menus, permissionList
 
-    const menus = await this.menuRepository
-    .createQueryBuilder('menu')
-    .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
-    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
-    .where('urr.userId = :userId', { userId })
-    .leftJoinAndSelect('menu.children', 'children')
-    .andWhere('menu.parentId IS NULL')
-    .getMany();
-    
+    if (account === 'admin') {
+      menus = await this.menuRepository
+      .createQueryBuilder('menu')
+      .leftJoinAndSelect('menu.children', 'children')
+      .andWhere('menu.parentId IS NULL')
+      .getMany();
+
+      permissionList = await this.menuRepository
+      .createQueryBuilder('menu')
+      .select(['menu.id', 'menu.fullName'])
+      .leftJoinAndSelect('menu.buttons', 'button')
+      .leftJoinAndSelect('menu.columns', 'column')
+      .getMany();
+    } else {
+      menus = await this.menuRepository
+      .createQueryBuilder('menu')
+      .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
+      .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
+      .where('urr.userId = :userId', { userId })
+      .leftJoinAndSelect('menu.children', 'children')
+      .andWhere('menu.parentId IS NULL')
+      .getMany();
+
+      permissionList = await this.menuRepository
+      .createQueryBuilder('menu')
+      .select(['menu.id', 'menu.fullName'])
+      .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
+      .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
+      .leftJoin('role_button_relation', 'rbr', 'urr.roleId = rbr.roleId')
+      .leftJoin('role_column_relation', 'rcr', 'urr.roleId = rcr.roleId')
+      .leftJoinAndSelect('menu.buttons', 'button', 'rbr.buttonPermissionId = button.id')
+      .leftJoinAndSelect('menu.columns', 'column', 'rcr.columnPermissionId = column.id')
+      .where('urr.userId = :userId', { userId })
+      .getMany();
+    }
     
     return {
-      menuList: [],
-      permissionList: []
+      menuList: menus,
+      permissionList: permissionList
     }
     
   }
@@ -90,6 +117,10 @@ export class UserService {
     const role2 = new Role()
     role2.fullName = '角色2'
     role2.entityCode = 'role2'
+
+    const role3 = new Role()
+    role3.fullName = '角色3'
+    role3.entityCode = 'role3'
 
     // 菜单
     const menu1 = new Menu()
@@ -180,15 +211,17 @@ export class UserService {
     // 角色绑定权限
     role1.menus = [menu7, menu8, menu3, menu4, menu5, menu6]
     role2.menus = [menu3, menu4, menu5, menu6]
+    role3.menus = [menu8]
 
-    role1.buttons = [button1, button2]
+    role1.buttons = [button1]
     role2.buttons = [button3]
+    role3.buttons = [button2]
 
     role1.columns = [column1, column2]
 
     // 用户绑定角色
     user1.roles = [role1, role2]
-    user2.roles = [role2]
+    user2.roles = [role2, role3]
 
     await this.userRepository.save([user1, user2])
   }

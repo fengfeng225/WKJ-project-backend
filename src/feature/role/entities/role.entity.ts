@@ -54,12 +54,12 @@ export class Role {
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
-  @ManyToMany(() => Menu, (menu) => menu.roles)
+  @ManyToMany(() => Menu, {cascade: true})
   menus: Menu[];
 
-  @ManyToMany(() => Button_permission, (button) => button.roles)
+  @ManyToMany(() => Button_permission, {cascade: true})
   buttons: Button_permission[];
 
-  @ManyToMany(() => Column_permission, (column) => column.roles)
+  @ManyToMany(() => Column_permission, {cascade: true})
   columns: Column_permission[];
 }

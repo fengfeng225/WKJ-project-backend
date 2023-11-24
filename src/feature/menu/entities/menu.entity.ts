@@ -56,10 +56,10 @@ export class Menu {
   })
   sortCode: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false })
   creatorTime: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false })
   lastModifyTime: Date;
 
   @Column({ nullable: true })
@@ -77,7 +77,7 @@ export class Menu {
   @OneToMany(() => Column_permission, (column) => column.menu)
   columns: Column_permission[]
 
-  @ManyToMany(() => Role, { cascade: true })
+  @ManyToMany(() => Role, (role) => role.menus)
   @JoinTable({
     name: 'role_menu_relation'
   })

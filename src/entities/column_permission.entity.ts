@@ -36,16 +36,16 @@ export class Column_permission {
   })
   sortCode: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false })
   creatorTime: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false })
   lastModifyTime: Date;
 
   @ManyToOne(() => Menu, (menu) => menu.columns)
   menu: Menu
 
-  @ManyToMany(() => Role, {cascade: true})
+  @ManyToMany(() => Role, (role) => role.columns)
   @JoinTable({
     name: 'role_column_relation'
   })
