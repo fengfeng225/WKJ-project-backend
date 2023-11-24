@@ -13,56 +13,63 @@ import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Menu {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ comment: '自然主键' })
   id: number;
 
   @Column({
-    type: 'int'
+    type: 'int',
+    comment: '菜单类型'
   })
   type: number;
 
   @Column({
     unique: true,
-    length: 50
+    length: 50,
+    comment: '名称'
   })
   fullName: string;
 
   @Column({
     unique: true,
-    length: 50
+    length: 50,
+    comment: '编码'
   })
   entityCode: string;
 
   @Column({
-    length: 50
+    length: 50,
+    comment: '图标'
   })
   icon: string;
 
   @Column({
     nullable: true,
-    type: 'longtext'
+    type: 'longtext',
+    comment: '地址'
   })
   urlAddress: string;
 
   @Column({
     type: 'int',
-    default: 1
+    default: 1,
+    comment: '启用状态'
   })
   enabledMark: number;
 
   @Column({
     type: 'int',
-    nullable: true
+    nullable: true,
+    comment: '排序'
   })
   sortCode: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '创建时间' })
   creatorTime: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, comment: '父级的ID' })
   parentId: number;
 
   @ManyToOne(() => Menu, menu => menu.children)

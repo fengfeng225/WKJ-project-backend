@@ -23,7 +23,7 @@ export class AuthService {
   // 登录接口服务层 签发jwt
   async login(loginUserDTO: any) {
     const user = await this.validateUser(loginUserDTO.account, loginUserDTO.password);
-    if (!user) throw new UnauthorizedException('用户名或密码错误');
+    if (!user) throw new UnauthorizedException('账号或密码错误');
 
     const payload = {account:user.account,userId:user.id};
     const token = this.jwtService.sign(payload)
