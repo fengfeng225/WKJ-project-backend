@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Query, Delete } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
+import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-@Controller('menu')
+@ApiTags('menu')
+@ApiBearerAuth()
+@Controller('system/menu')
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
@@ -12,9 +15,10 @@ export class MenuController {
     return this.menuService.create(createMenuDto);
   }
 
-  @Get()
-  findAll() {
-    return this.menuService.findAll();
+  @ApiOperation({summary:"获取菜单列表"})
+  @Get('list')
+  findAll(@Query() query: string) {
+    return this.menuService.findAll(query);
   }
 
   @Get(':id')
@@ -22,7 +26,7 @@ export class MenuController {
     return this.menuService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menuService.update(+id, updateMenuDto);
   }
