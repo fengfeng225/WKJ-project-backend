@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -44,9 +44,12 @@ export class UserService {
         }
     });
 
+    if (!user) throw new UnauthorizedException('用户不存在');
+
     return user;
   }
 
+  // 获取用户信息及权限
   async getPermissionListByUserId(userId: number, account: string) {
     let menus, permissionList
 
@@ -91,6 +94,20 @@ export class UserService {
       permissionList: permissionList
     }
     
+  }
+
+  // 更新密码
+  async updatePassword(userId: number, updateUserDto) {
+    if (updateUserDto.password !== updateUserDto.password2) throw new HttpException('密码输入不一致，请重试', 404);
+
+    const result = await this.userRepository
+    .createQueryBuilder()
+    .update()
+    .set({password: updateUserDto.password })
+    .where('id = :id', {id: userId})
+    .execute()
+    
+    if (result.affected === 1) return null
   }
 
   // 添加测试数据
@@ -225,6 +242,5 @@ export class UserService {
 
     await this.userRepository.save([user1, user2])
   }
-
 
 }

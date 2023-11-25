@@ -6,14 +6,14 @@ import { RequireLogin } from 'src/decorators/require-login';
 
 @ApiTags('auth')
 @ApiBearerAuth()
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 登录
   @ApiOperation({summary:"用户登录"})
   @RequireLogin()
-  @Post('auth/login')
+  @Post('login')
   @ApiBody({
     type:LoginUserDTO
   })
@@ -24,16 +24,16 @@ export class AuthController {
   // 查询个人信息
   @ApiOperation({summary:"获取用户信息"})
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('api/auth/info')
+  @Get('info')
   getProfile(@Request() req) {
     return this.authService.getProfile(req.user.userId, req.user.account);
   }
 
   // 登出
   @ApiOperation({summary:"登出"})
-  @Post('api/auth/logout')
-  logout(@Request() req) {
-    return this.authService.logout(req.user.userId);
+  @Post('logout')
+  logout() {
+    return null
   }
 
 }

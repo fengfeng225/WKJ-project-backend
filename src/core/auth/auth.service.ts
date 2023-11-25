@@ -37,8 +37,6 @@ export class AuthService {
   async getProfile(userId: number, account: string) {
     const userInfo = await this.userService.findOne(userId);
 
-    if (!userInfo) throw new UnauthorizedException('用户不存在');
-
     const { menuList = [], permissionList = [] } = await this.userService.getPermissionListByUserId(userId, account)
     
     return {
@@ -46,9 +44,5 @@ export class AuthService {
       menuList,
       permissionList
     }
-  }
-
-  async logout(userId: number) {
-    return null
   }
 }
