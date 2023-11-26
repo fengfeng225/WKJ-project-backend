@@ -1,4 +1,48 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateColumnDto } from './create-column.dto';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
-export class UpdateColumnDto extends PartialType(CreateColumnDto) {}
+export class UpdateColumnDto {
+  @ApiProperty({
+    example:"number",
+    description:"id"
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  id: number;
+
+  @ApiProperty({
+    example:"string",
+    description:"名称"
+  })
+  @IsNotEmpty()
+  @IsString()
+  fullName: string;
+
+  @ApiProperty({
+    example:"string",
+    description:"编码"
+  })
+  @IsNotEmpty()
+  @IsString()
+  entityCode: string;
+
+  @ApiProperty({
+    example:"string",
+    description:"说明"
+  })
+  description: string;
+
+  @ApiProperty({
+    example:"number",
+    description:"排序"
+  })
+  @IsNumber()
+  sortCode: number;
+
+  @ApiProperty({
+    example:"number",
+    description:"启用状态"
+  })
+  @IsNumber()
+  enabledMark: number;
+}

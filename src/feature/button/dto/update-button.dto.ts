@@ -11,8 +11,8 @@ export class UpdateButtonDto {
   id: number;
 
   @ApiProperty({
-      example:"string",
-      description:"名称"
+    example:"string",
+    description:"名称"
   })
   @IsNotEmpty()
   @IsString()

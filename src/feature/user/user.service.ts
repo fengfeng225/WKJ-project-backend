@@ -196,9 +196,9 @@ export class UserService {
 
     const menu9 = new Menu()
     menu9.fullName = '系统图标'
-    menu9.entityCode = 'systemIcon'
+    menu9.entityCode = 'icon'
     menu9.icon = 'icon-ym icon-ym-sysIcon'
-    menu9.urlAddress = 'system/systemIcon'
+    menu9.urlAddress = 'system/icon'
     menu9.type = 2
 
     const menu10 = new Menu()

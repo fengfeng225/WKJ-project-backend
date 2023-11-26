@@ -11,6 +11,7 @@ import { RoleModule } from './feature/role/role.module';
 import { MenuModule } from './feature/menu/menu.module';
 import { ButtonModule } from './feature/button/button.module';
 import { ColumnModule } from './feature/column/column.module';
+import { MbModule } from './feature/bill/mb/mb.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -39,7 +40,8 @@ import envConfig from 'config/envConfig';
     MenuModule,
     RoleModule,
     ButtonModule,
-    ColumnModule
+    ColumnModule,
+    MbModule
   ],
   controllers: [AppController],
   providers: [

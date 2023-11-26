@@ -49,6 +49,9 @@ export class Column_permission {
   @ManyToOne(() => Menu, (menu) => menu.columns)
   menu: Menu
 
+  @Column({comment: '所属菜单ID'})
+  menuId: number
+
   @ManyToMany(() => Role, (role) => role.columns)
   @JoinTable({
     name: 'role_column_relation'
