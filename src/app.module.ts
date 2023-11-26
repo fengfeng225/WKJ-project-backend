@@ -9,6 +9,8 @@ import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
 import { ConfigModule, ConfigService  } from '@nestjs/config';
 import { RoleModule } from './feature/role/role.module';
 import { MenuModule } from './feature/menu/menu.module';
+import { ButtonModule } from './feature/button/button.module';
+import { ColumnModule } from './feature/column/column.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -35,7 +37,9 @@ import envConfig from 'config/envConfig';
     UserModule,
     AuthModule,
     MenuModule,
-    RoleModule
+    RoleModule,
+    ButtonModule,
+    ColumnModule
   ],
   controllers: [AppController],
   providers: [

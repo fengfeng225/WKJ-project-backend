@@ -3,15 +3,17 @@ import { MenuService } from './menu.service';
 import { MenuController } from './menu.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Menu } from './entities/menu.entity';
-import { Button_permission } from 'src/entities/button_permission.entity';
-import { Column_permission } from 'src/entities/column_permission.entity';
+import { ButtonModule } from '../button/button.module';
+import { ColumnModule } from '../column/column.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Menu, Button_permission, Column_permission])
+    TypeOrmModule.forFeature([Menu]),
+    ButtonModule,
+    ColumnModule
   ],
   controllers: [MenuController],
   providers: [MenuService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule, ButtonModule, ColumnModule]
 })
 export class MenuModule {}

@@ -10,29 +10,45 @@ import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
-  @Post()
-  create(@Body() createMenuDto: CreateMenuDto) {
-    return this.menuService.create(createMenuDto);
-  }
-
   @ApiOperation({summary:"获取菜单列表"})
   @Get('list')
   findAll(@Query() query: string) {
     return this.menuService.findAll(query);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @ApiOperation({summary:"获取目录"})
+  @Get('selector/:id')
+  getSelector(@Param('id') id: number) {
+    return this.menuService.getSelector(id);
+  }
+
+  @ApiOperation({summary:"新建菜单"})
+  @ApiBody({
+    type: CreateMenuDto
+  })
+  @Post()
+  create(@Body() createMenuDto: CreateMenuDto) {
+    return this.menuService.create(createMenuDto);
+  }
+
+  @ApiOperation({summary:"菜单信息"})
+  @Get('info/:id')
+  findOne(@Param('id') id: number) {
     return this.menuService.findOne(+id);
   }
 
+  @ApiOperation({summary:"更新菜单"})
+  @ApiBody({
+    type: UpdateMenuDto
+  })
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
+  update(@Param('id') id: number, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menuService.update(+id, updateMenuDto);
   }
 
+  @ApiOperation({summary:"删除菜单"})
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.menuService.remove(+id);
   }
 }

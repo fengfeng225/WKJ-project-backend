@@ -18,6 +18,9 @@ async function bootstrap() {
   // 全局管道
   app.useGlobalPipes(new ValidationPipe());
 
+  // 全局配置添加请求前缀
+  app.setGlobalPrefix('/api')
+
   const options = new DocumentBuilder()
     .setTitle('防互窜管理系统')
     .setDescription('防互窜管理系统项目后端搭建')
@@ -26,9 +29,11 @@ async function bootstrap() {
     .build();
 
   const documents = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('index.html', app, documents);
-
-  app.setGlobalPrefix('/api')
+  SwaggerModule.setup('index.html', app, documents, {
+    swaggerOptions: {
+      url: '/api',
+    },
+  });
 
   await app.listen(9000);
 }

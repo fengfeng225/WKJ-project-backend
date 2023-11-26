@@ -6,11 +6,11 @@ import {
   ManyToMany,
   JoinTable
 } from 'typeorm';
-import { Menu } from '../feature/menu/entities/menu.entity';
-import { Role } from '../feature/role/entities/role.entity';
+import { Menu } from '../../menu/entities/menu.entity';
+import { Role } from '../../role/entities/role.entity';
 
 @Entity()
-export class Button_permission {
+export class Column_permission {
   @PrimaryGeneratedColumn({ comment: '自然主键' })
   id: number;
 
@@ -46,12 +46,12 @@ export class Button_permission {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
-  @ManyToOne(() => Menu, {cascade: true})
+  @ManyToOne(() => Menu, (menu) => menu.columns)
   menu: Menu
 
-  @ManyToMany(() => Role, (role) => role.buttons)
+  @ManyToMany(() => Role, (role) => role.columns)
   @JoinTable({
-    name: 'role_button_relation'
+    name: 'role_column_relation'
   })
   roles: Role[];
 }

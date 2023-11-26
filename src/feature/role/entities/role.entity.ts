@@ -7,8 +7,8 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Menu } from '../../menu/entities/menu.entity';
-import { Button_permission } from 'src/entities/button_permission.entity';
-import { Column_permission } from 'src/entities/column_permission.entity';
+import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
+import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
 
 @Entity()
 export class Role {
@@ -16,14 +16,12 @@ export class Role {
   id: number;
 
   @Column({
-    unique: true,
     length: 50,
     comment: '名称'
   })
   fullName: string;
 
   @Column({
-    unique: true,
     length: 50,
     comment: '编码'
   })
@@ -42,6 +40,13 @@ export class Role {
     comment: '启用状态'
   })
   enabledMark: number;
+
+  @Column({
+      type: 'int',
+      default: 0,
+      comment: '表示删除'
+  })
+  deleteMark: number;
 
   @Column({
     type: 'int',

@@ -7,8 +7,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToMany
 } from 'typeorm';
-import { Button_permission } from 'src/entities/button_permission.entity';
-import { Column_permission } from 'src/entities/column_permission.entity';
+import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
+import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
@@ -23,14 +23,12 @@ export class Menu {
   type: number;
 
   @Column({
-    unique: true,
     length: 50,
     comment: '名称'
   })
   fullName: string;
 
   @Column({
-    unique: true,
     length: 50,
     comment: '编码'
   })
@@ -57,11 +55,25 @@ export class Menu {
   enabledMark: number;
 
   @Column({
+      type: 'int',
+      default: 0,
+      comment: '表示删除'
+  })
+  deleteMark: number;
+
+  @Column({
     type: 'int',
     nullable: true,
     comment: '排序'
   })
   sortCode: number;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+    comment: '说明'
+  })
+  description: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '创建时间' })
   creatorTime: Date;

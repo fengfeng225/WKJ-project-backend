@@ -4,8 +4,8 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
-import { Button_permission } from 'src/entities/button_permission.entity';
-import { Column_permission } from 'src/entities/column_permission.entity';
+import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
+import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
 
 @Injectable()
 export class UserService {
@@ -59,6 +59,7 @@ export class UserService {
       .leftJoinAndSelect('menu.children', 'children')
       .andWhere('menu.parentId IS NULL')
       .getMany();
+      
 
       permissionList = await this.menuRepository
       .createQueryBuilder('menu')
@@ -188,15 +189,50 @@ export class UserService {
 
     const menu8 = new Menu()
     menu8.fullName = '短期台账'
-    menu8.entityCode = 'shortBill'
+    menu8.entityCode = 'mb/shortBill'
     menu8.icon = 'el-icon-document'
     menu8.urlAddress = 'bill/mb/shortBill'
     menu8.type = 2
 
+    const menu9 = new Menu()
+    menu9.fullName = '系统图标'
+    menu9.entityCode = 'systemIcon'
+    menu9.icon = 'icon-ym icon-ym-sysIcon'
+    menu9.urlAddress = 'system/systemIcon'
+    menu9.type = 2
+
+    const menu10 = new Menu()
+    menu10.fullName = '系统日志'
+    menu10.entityCode = 'log'
+    menu10.icon = 'el-icon-tickets'
+    menu10.urlAddress = 'system/log'
+    menu10.type = 2
+
+    const menu11 = new Menu()
+    menu11.fullName = '长期台账'
+    menu11.entityCode = 'mb/longBill'
+    menu11.icon = 'el-icon-document-copy'
+    menu11.urlAddress = 'bill/mb/longBill'
+    menu11.type = 2
+
+    const menu12 = new Menu()
+    menu12.fullName = '拆装明细'
+    menu12.entityCode = 'mb/disassemblyDetails'
+    menu12.icon = 'el-icon-notebook-2'
+    menu12.urlAddress = 'bill/mb/disassemblyDetails'
+    menu12.type = 2
+
+    const menu13 = new Menu()
+    menu13.fullName = '班组'
+    menu13.entityCode = 'mb/groups'
+    menu13.icon = 'ym-custom ym-custom-format-list-bulleted'
+    menu13.urlAddress = 'bill/mb/groups'
+    menu13.type = 2
+
     // 菜单自身绑定
-    menu1.children = [menu2]
+    menu1.children = [menu2, menu9, menu10]
     menu3.children = [menu4, menu5, menu6]
-    menu7.children = [menu8]
+    menu7.children = [menu8, menu11, menu12, menu13]
 
     // 按钮
     const button1 = new Button_permission()
@@ -228,7 +264,7 @@ export class UserService {
     // 角色绑定权限
     role1.menus = [menu7, menu8, menu3, menu4, menu5, menu6]
     role2.menus = [menu3, menu4, menu5, menu6]
-    role3.menus = [menu8]
+    role3.menus = [menu8, menu1, menu2, menu9, menu10, menu11, menu12, menu13]
 
     role1.buttons = [button1]
     role2.buttons = [button3]
@@ -240,7 +276,7 @@ export class UserService {
     user1.roles = [role1, role2]
     user2.roles = [role2, role3]
 
-    await this.userRepository.save([user1, user2])
+    await this.userRepository.save([user0, user1, user2])
   }
 
 }

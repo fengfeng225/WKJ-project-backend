@@ -16,7 +16,6 @@ export class User{
     id:number;
 
     @Column({
-        unique: true,
         length: 50,
         comment: '账号'
     })
@@ -31,7 +30,6 @@ export class User{
     password:string;
 
     @Column({
-        unique: true,
         length: 50,
         comment: '用户名'
     })
@@ -43,6 +41,13 @@ export class User{
         comment: '启用状态'
     })
     enabledMark: number;
+
+    @Column({
+        type: 'int',
+        default: 0,
+        comment: '表示删除'
+    })
+    deleteMark: number;
 
     @Column({
         type: 'int',
