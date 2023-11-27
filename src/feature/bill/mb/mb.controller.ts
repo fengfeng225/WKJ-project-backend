@@ -19,14 +19,15 @@ export class MbController {
     return 'done'
   }
 
+  @ApiOperation({summary:"获取短期盲板"})
+  @Get('shortBill')
+  findAll() {
+    return this.mbService.findAll();
+  }
+
   @Post()
   create(@Body() createMbDto: CreateMbDto) {
     return this.mbService.create(createMbDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.mbService.findAll();
   }
 
   @Get(':id')
