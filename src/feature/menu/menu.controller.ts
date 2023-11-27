@@ -12,7 +12,7 @@ export class MenuController {
 
   @ApiOperation({summary:"获取菜单列表"})
   @Get('list')
-  findAll(@Query() query: string) {
+  findAll(@Query() query) {
     return this.menuService.findAll(query);
   }
 

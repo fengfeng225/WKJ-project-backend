@@ -1,37 +1,123 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { MbClass } from './entities/mb-class.entity';
+import { MbShort } from './entities/mb-short.entity';
 
 @Injectable()
 export class MbService {
   constructor(
     @InjectRepository(MbClass)
-    private readonly classRepository:Repository<MbClass>
+    private readonly classRepository:Repository<MbClass>,
+    @InjectRepository(MbShort)
+    private readonly shortRepository:Repository<MbShort>,
   ){}
 
-  create(createMbDto: CreateMbDto) {
-    return 'This action adds a new mb';
+  // shortBill
+  async createShortBill(createMbDto: CreateMbDto) {
+    const isExist = await this.shortRepository.findOne({
+      where: {
+        code: createMbDto.code,
+        classId: createMbDto.classId,
+        deleteMark: 0
+      }
+    })
+
+    if (isExist) throw new HttpException('该盲板已存在，请重试', 400)
+
+    await this.shortRepository.save(createMbDto)
+    return null
   }
 
-  findAll() {
-    return `This action returns all mb`;
+  async findAllShortBill({
+    keyword,
+    classId,
+    pageSize = 20,
+    currentPage = 1,
+    queryJson
+  }): Promise<{ list: MbShort[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
+    const query = this.shortRepository.createQueryBuilder('mbShort').where('deleteMark = 0');
+    
+    if (keyword) {
+      query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
+    }
+    if (classId && +classId !== -1) {      
+      query.andWhere(`classId = :classId`, { classId });
+    }
+    if (queryJson) {
+      query.andWhere(`name IN (:...devices)`, { devices: JSON.parse(queryJson) });
+    }
+
+    const total = await query.getCount();
+    
+    query.skip((currentPage - 1) * pageSize).take(pageSize);
+
+    const list = await query.getMany();
+    const pagination = {
+      pageIndex: +currentPage,
+      pageSize: +pageSize,
+      total
+    }
+
+    return { list, pagination }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} mb`;
+  async findOneShortBill(id: number) {
+    return await this.shortRepository.findOne({
+      where: {
+        id
+      }
+    })
   }
 
-  update(id: number, updateMbDto: UpdateMbDto) {
-    return `This action updates a #${id} mb`;
+  async updateShortBill(id: number, updateMbDto: UpdateMbDto) {
+    const shortBill = await this.shortRepository.findOne({
+      where: {
+        id
+      }
+    })
+
+    if (!shortBill) throw new HttpException('无效的盲板', 400)
+
+    const isExist = await this.shortRepository.findOne({
+      where: {
+        code: updateMbDto.code,
+        classId: updateMbDto.classId,
+        deleteMark: 0,
+        id: Not(id)
+      }
+    })
+
+    if (isExist) throw new HttpException('当前班组已存在相同编号的盲板，请重试', 400)
+    
+    await this.shortRepository.save(updateMbDto)
+    return null
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} mb`;
+  async removeShortBill(id: number) {
+    const result = await this.shortRepository
+    .createQueryBuilder()
+    .update()
+    .set({deleteMark: 1})
+    .where("id = :id", { id })
+    .execute()
+
+    if (result.affected === 1) return null
   }
 
+  // longBill
+
+  // class
+  async findAllClass(): Promise<{list: MbClass[]}> {
+    const list =  await this.classRepository.find()
+    return {
+      list
+    }
+  }
+
+  // 初始测试数据
   async initClass() {
     const class1 = new MbClass()
     class1.label = '白油一班'

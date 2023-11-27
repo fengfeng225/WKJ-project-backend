@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/common';
 import { MbService } from './mb.service';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
+import { FindAllMbDto } from './dto/findAll-mb.dto';
 import { RequireLogin } from 'src/decorators/require-login';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('mb')
 @ApiBearerAuth()
@@ -12,6 +13,7 @@ import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 export class MbController {
   constructor(private readonly mbService: MbService) {}
 
+  // 初始化测试数据
   @RequireLogin()
   @Get('init')
   async initClass() {
@@ -19,29 +21,48 @@ export class MbController {
     return 'done'
   }
 
+  // shortBill
   @ApiOperation({summary:"获取短期盲板"})
+  @ApiQuery({name: 'classId', required: false})
+  @ApiQuery({name: 'keyword', required: false})
+  @ApiQuery({name: 'currentPage', required: false})
+  @ApiQuery({name: 'pageSize', required: false})
+  @ApiQuery({name: 'queryJson', required: false})
   @Get('shortBill')
-  findAll() {
-    return this.mbService.findAll();
+  findAllShortBill(@Query() findAllMbDto: FindAllMbDto) {
+    return this.mbService.findAllShortBill(findAllMbDto);
   }
 
-  @Post()
-  create(@Body() createMbDto: CreateMbDto) {
-    return this.mbService.create(createMbDto);
+  @ApiOperation({summary:"新增短期盲板"})
+  @Post('shortBill')
+  createShortBill(@Body() createMbDto: CreateMbDto) {
+    return this.mbService.createShortBill(createMbDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.mbService.findOne(+id);
+  @ApiOperation({summary:"获取短期盲板信息"})
+  @Get('shortBill/:id')
+  findOneShortBill(@Param('id') id: number) {
+    return this.mbService.findOneShortBill(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateMbDto: UpdateMbDto) {
-    return this.mbService.update(+id, updateMbDto);
+  @ApiOperation({summary:"更新短期盲板"})
+  @Put('shortBill/:id')
+  updateShortBill(@Param('id') id: number, @Body() updateMbDto: UpdateMbDto) {
+    return this.mbService.updateShortBill(+id, updateMbDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.mbService.remove(+id);
+  @ApiOperation({summary:"删除短期盲板"})
+  @Delete('shortBill/:id')
+  removeShortBill(@Param('id') id: number) {
+    return this.mbService.removeShortBill(+id);
+  }
+
+  // longBill
+
+  // class
+  @ApiOperation({summary:"获取班组列表"})
+  @Get('class')
+  findAllClass() {
+    return this.mbService.findAllClass();
   }
 }

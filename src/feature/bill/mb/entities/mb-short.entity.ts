@@ -57,16 +57,16 @@ export class MbShort {
   pipelineMediaTemperature: string;
 
   @Column({
-    type: 'float',
+    length: 50,
     comment: '管线介质压力 (MPa)'
   })
-  pipelineMediaPressure: Float32Array;
+  pipelineMediaPressure: string;
 
   @Column({
-    type: 'int',
+    length: 50,
     comment: '盲板规格 (mm)'
   })
-  size: number;
+  size: string;
 
   @Column({
     length: 50,
@@ -86,13 +86,6 @@ export class MbShort {
       comment: '表示删除'
   })
   deleteMark: number;
-
-  @Column({
-    type: 'int',
-    nullable: true,
-    comment: '排序'
-  })
-  sortCode: number;
 
   @Column({
     length: 50,

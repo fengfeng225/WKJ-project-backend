@@ -31,5 +31,5 @@ export class MbClass {
   lastModifyTime: Date;
 
   @OneToMany(() => MbShort, (mbShort) => mbShort.class)
-  devices: MbShort[];
+  mbShorts: MbShort[];
 }

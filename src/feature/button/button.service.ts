@@ -22,7 +22,8 @@ export class ButtonService {
 
     if (isExist) throw new HttpException('名称或编码重复', 400)
 
-    return await this.buttonRepository.save(createButtonDto)
+    await this.buttonRepository.save(createButtonDto)
+    return null
   }
 
   async findAll(id: number) {
@@ -52,7 +53,7 @@ export class ButtonService {
       }
     })
 
-    if (!button) throw new HttpException('无效的按钮', 500)
+    if (!button) throw new HttpException('无效的按钮', 400)
 
     const isExist = await this.buttonRepository.findOne({
       where: [

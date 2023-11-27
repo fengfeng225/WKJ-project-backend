@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateMenuDto {
   @ApiProperty({
@@ -11,8 +11,8 @@ export class CreateMenuDto {
   parentId: number;
 
   @ApiProperty({
-      example:"string",
-      description:"名称"
+    example:"string",
+    description:"名称"
   })
   @IsNotEmpty()
   @IsString()
@@ -46,13 +46,14 @@ export class CreateMenuDto {
     example:"string",
     description:"地址"
   })
-  @IsString()
+  @IsOptional()
   urlAddress: string;
 
   @ApiProperty({
     example:"string",
     description:"说明"
   })
+  @IsOptional()
   description: string;
 
   @ApiProperty({

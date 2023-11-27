@@ -22,7 +22,8 @@ export class ColumnService {
 
     if (isExist) throw new HttpException('名称或编码重复', 400)
 
-    return await this.columnRepository.save(createColumnDto)
+    await this.columnRepository.save(createColumnDto)
+    return null
   }
 
   async batchCreate(columnData) {
@@ -66,7 +67,7 @@ export class ColumnService {
       }
     })
 
-    if (!button) throw new HttpException('无效的表格列', 500)
+    if (!button) throw new HttpException('无效的表格列', 400)
 
     const isExist = await this.columnRepository.findOne({
       where: [

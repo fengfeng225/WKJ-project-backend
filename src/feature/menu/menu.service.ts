@@ -44,6 +44,8 @@ export class MenuService {
 
     if (isExist) throw new HttpException('名称或编码重复', 400)
 
+    if (createMenuDto.parentId === -1) createMenuDto.parentId = null
+    
     await this.menuRepository.save(createMenuDto)
 
     return null
@@ -94,7 +96,7 @@ export class MenuService {
       }
     })
 
-    if (!menu) throw new HttpException('无效的菜单', 500)
+    if (!menu) throw new HttpException('无效的菜单', 400)
 
     const isExist = await this.menuRepository.findOne({
       where: [
