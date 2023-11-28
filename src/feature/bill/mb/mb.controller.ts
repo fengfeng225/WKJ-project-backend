@@ -29,8 +29,14 @@ export class MbController {
   @ApiQuery({name: 'pageSize', required: false})
   @ApiQuery({name: 'queryJson', required: false})
   @Get('shortBill')
-  findAllShortBill(@Query() findAllMbDto: FindAllMbDto) {
-    return this.mbService.findAllShortBill(findAllMbDto);
+  findShortBill(@Query() findAllMbDto: FindAllMbDto) {
+    return this.mbService.findShortBill(findAllMbDto);
+  }
+
+  @ApiOperation({summary:"获取全部短期盲板"})
+  @Get('allShortBill')
+  findAllShortBill() {
+    return this.mbService.findAllShortBill();
   }
 
   @ApiOperation({summary:"新增短期盲板"})
@@ -66,8 +72,14 @@ export class MbController {
   @ApiQuery({name: 'pageSize', required: false})
   @ApiQuery({name: 'queryJson', required: false})
   @Get('longBill')
-  findAllLongBill(@Query() findAllMbDto: FindAllMbDto) {
-    return this.mbService.findAllLongBill(findAllMbDto);
+  findLongBill(@Query() findAllMbDto: FindAllMbDto) {
+    return this.mbService.findLongBill(findAllMbDto);
+  }
+
+  @ApiOperation({summary:"获取全部长期盲板"})
+  @Get('allLongBill')
+  findAllLongBill() {
+    return this.mbService.findAllLongBill();
   }
 
   @ApiOperation({summary:"新增长期盲板"})

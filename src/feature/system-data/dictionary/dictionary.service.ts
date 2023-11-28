@@ -89,8 +89,15 @@ export class DictionaryService {
       }
     })
 
-    if (!dictionary) list = []
-    else list = dictionary.options
+    if (!dictionary) {
+      list = []
+    } else {
+      list = await this.optionRepository.find({
+        where: {
+          dictionaryId: dictionary.id
+        }
+      })
+    }
     
     return {
       list

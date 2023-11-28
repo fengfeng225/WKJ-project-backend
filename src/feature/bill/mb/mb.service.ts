@@ -1,8 +1,9 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
+import { Repository, Not, DataSource } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
+import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
 import { MbClass } from './entities/mb-class.entity';
 import { MbShort } from './entities/mb-short.entity';
 import { MbLong } from './entities/mb-long.entity';
@@ -16,6 +17,7 @@ export class MbService {
     private readonly shortRepository:Repository<MbShort>,
     @InjectRepository(MbLong)
     private readonly longRepository:Repository<MbLong>,
+    private dataSource: DataSource
   ){}
 
   // shortBill
@@ -32,12 +34,16 @@ export class MbService {
     })
 
     if (isExist) throw new HttpException('该盲板已存在，请重试', 400)
-
-    await this.shortRepository.save(createMbDto)
-    return null
+    
+    // 事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(MbShort, createMbDto)
+      // await this.addDisassembly(createMbDto)
+      return null
+    })
   }
 
-  async findAllShortBill({
+  async findShortBill({
     keyword,
     classId,
     pageSize = 20,
@@ -68,6 +74,17 @@ export class MbService {
     }
 
     return { list, pagination }
+  }
+
+  async findAllShortBill() {
+    const list = await this.shortRepository.find({
+      where: {
+        deleteMark: 0
+      }
+    })
+    return {
+      list
+    }
   }
 
   async findOneShortBill(id: number) {
@@ -136,7 +153,7 @@ export class MbService {
     return null
   }
 
-  async findAllLongBill({
+  async findLongBill({
     keyword,
     classId,
     pageSize = 20,
@@ -167,6 +184,17 @@ export class MbService {
     }
 
     return { list, pagination }
+  }
+
+  async findAllLongBill() {
+    const list = await this.longRepository.find({
+      where: {
+        deleteMark: 0
+      }
+    })
+    return {
+      list
+    }
   }
 
   async findOneLongBill(id: number) {
@@ -222,6 +250,11 @@ export class MbService {
     return {
       list
     }
+  }
+
+  // 添加拆装明细
+  async addDisassembly(createDisassemblyDto: CreateDisassemblyDto) {
+
   }
 
   // 左边补零
