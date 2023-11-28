@@ -17,6 +17,9 @@ export class MbService {
 
   // shortBill
   async createShortBill(createMbDto: CreateMbDto) {
+    // 编号长度小于3，用0补齐
+    if (createMbDto.code.length < 3) createMbDto.code = this.leftFillZero(createMbDto.code, 3)
+
     const isExist = await this.shortRepository.findOne({
       where: {
         code: createMbDto.code,
@@ -73,6 +76,9 @@ export class MbService {
   }
 
   async updateShortBill(id: number, updateMbDto: UpdateMbDto) {
+    // 编号长度小于3，用0补齐
+    if (updateMbDto.code.length < 3) updateMbDto.code = this.leftFillZero(updateMbDto.code, 3)
+    
     const shortBill = await this.shortRepository.findOne({
       where: {
         id
@@ -115,6 +121,11 @@ export class MbService {
     return {
       list
     }
+  }
+
+  // 左边补零
+  private leftFillZero(val: string, count: number): string {
+    return new Array(count - val.length + 1).join('0') + val
   }
 
   // 初始测试数据

@@ -11,6 +11,14 @@ export class UpdateButtonDto {
   id: number;
 
   @ApiProperty({
+    example:"number",
+    description:"所属菜单Id"
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  menuId: number;
+
+  @ApiProperty({
     example:"string",
     description:"名称"
   })

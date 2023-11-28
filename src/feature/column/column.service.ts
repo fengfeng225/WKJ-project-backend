@@ -15,8 +15,8 @@ export class ColumnService {
   async create(createColumnDto: CreateColumnDto) {
     const isExist = await this.columnRepository.findOne({
       where: [
-        { fullName: createColumnDto.fullName },
-        { entityCode:createColumnDto.entityCode }
+        { fullName: createColumnDto.fullName, menuId: createColumnDto.menuId },
+        { entityCode:createColumnDto.entityCode, menuId: createColumnDto.menuId }
       ]
     })
 
@@ -71,8 +71,8 @@ export class ColumnService {
 
     const isExist = await this.columnRepository.findOne({
       where: [
-        { fullName: updateColumnDto.fullName, id: Not(updateColumnDto.id) },
-        { entityCode: updateColumnDto.entityCode, id: Not(updateColumnDto.id) }
+        { fullName: updateColumnDto.fullName, menuId: updateColumnDto.menuId, id: Not(updateColumnDto.id) },
+        { entityCode: updateColumnDto.entityCode, menuId: updateColumnDto.menuId, id: Not(updateColumnDto.id) }
       ]
     })
 

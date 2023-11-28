@@ -15,8 +15,8 @@ export class ButtonService {
   async create(createButtonDto: CreateButtonDto) {
     const isExist = await this.buttonRepository.findOne({
       where: [
-        { fullName: createButtonDto.fullName },
-        { entityCode:createButtonDto.entityCode }
+        { fullName: createButtonDto.fullName, menuId: createButtonDto.menuId },
+        { entityCode:createButtonDto.entityCode, menuId: createButtonDto.menuId }
       ]
     })
 
@@ -57,8 +57,8 @@ export class ButtonService {
 
     const isExist = await this.buttonRepository.findOne({
       where: [
-        { fullName: updateButtonDto.fullName, id: Not(updateButtonDto.id) },
-        { entityCode: updateButtonDto.entityCode, id: Not(updateButtonDto.id) }
+        { fullName: updateButtonDto.fullName, menuId: updateButtonDto.menuId, id: Not(updateButtonDto.id) },
+        { entityCode: updateButtonDto.entityCode, menuId: updateButtonDto.menuId, id: Not(updateButtonDto.id) }
       ]
     })
 
