@@ -9,7 +9,6 @@ import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 @ApiTags('mb')
 @ApiBearerAuth()
 @Controller('admin/mb')
-@Controller('mb')
 export class MbController {
   constructor(private readonly mbService: MbService) {}
 
@@ -20,6 +19,7 @@ export class MbController {
     await this.mbService.initClass()
     return 'done'
   }
+
 
   // shortBill
   @ApiOperation({summary:"获取短期盲板"})
@@ -57,7 +57,43 @@ export class MbController {
     return this.mbService.removeShortBill(+id);
   }
 
+
   // longBill
+  @ApiOperation({summary:"获取长期盲板"})
+  @ApiQuery({name: 'classId', required: false})
+  @ApiQuery({name: 'keyword', required: false})
+  @ApiQuery({name: 'currentPage', required: false})
+  @ApiQuery({name: 'pageSize', required: false})
+  @ApiQuery({name: 'queryJson', required: false})
+  @Get('longBill')
+  findAllLongBill(@Query() findAllMbDto: FindAllMbDto) {
+    return this.mbService.findAllLongBill(findAllMbDto);
+  }
+
+  @ApiOperation({summary:"新增长期盲板"})
+  @Post('longBill')
+  createLongBill(@Body() createMbDto: CreateMbDto) {
+    return this.mbService.createLongBill(createMbDto);
+  }
+
+  @ApiOperation({summary:"获取长期盲板信息"})
+  @Get('longBill/:id')
+  findOneLongBill(@Param('id') id: number) {
+    return this.mbService.findOneLongBill(+id);
+  }
+
+  @ApiOperation({summary:"更新长期盲板"})
+  @Put('longBill/:id')
+  updateLongBill(@Param('id') id: number, @Body() updateMbDto: UpdateMbDto) {
+    return this.mbService.updateLongBill(+id, updateMbDto);
+  }
+
+  @ApiOperation({summary:"删除长期盲板"})
+  @Delete('longBill/:id')
+  removeLongBill(@Param('id') id: number) {
+    return this.mbService.removeLongBill(+id);
+  }
+
 
   // class
   @ApiOperation({summary:"获取班组列表"})

@@ -12,8 +12,8 @@ export class MenuController {
 
   @ApiOperation({summary:"获取菜单列表"})
   @Get('list')
-  findAll(@Query() query) {
-    return this.menuService.findAll(query);
+  findAll(@Query('keyword')  keyword: string) {
+    return this.menuService.findAll(keyword);
   }
 
   @ApiOperation({summary:"获取目录"})

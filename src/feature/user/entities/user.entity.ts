@@ -60,7 +60,7 @@ export class User{
     creatorTime: Timestamp;
 
     @Exclude()
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', comment: '上次更新时间' })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
     lastModifyTime: Timestamp;
 
     @ManyToMany(() => Role, { cascade: true })
