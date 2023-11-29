@@ -96,12 +96,6 @@ export class MbDisassembly {
   creatorTime: Date;
 
   @Column({
-    type: 'int',
-    comment: '表示删除'
-  })
-  deleteMark: number;
-
-  @Column({
     length: 50,
     comment: '拆装操作说明'
   })

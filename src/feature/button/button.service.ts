@@ -27,11 +27,11 @@ export class ButtonService {
   }
 
   async findAll(id: number) {
-    const buttons = await this.buttonRepository.find({
-      where: {
-        menuId: id
-      }
-    })
+    const buttons = await this.buttonRepository
+    .createQueryBuilder('button')
+    .where('button.menuId = :id', {id})
+    .orderBy('button.sortCode')
+    .getMany()
 
     return {
       list: buttons

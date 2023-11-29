@@ -107,6 +107,18 @@ export class MbController {
   }
 
 
+  // disassembly
+  @ApiOperation({summary:"获取拆装明细"})
+  @ApiQuery({name: 'classId', required: false})
+  @ApiQuery({name: 'keyword', required: false})
+  @ApiQuery({name: 'currentPage', required: false})
+  @ApiQuery({name: 'pageSize', required: false})
+  @Get('bill/disassembleDetails')
+  findDisassembleDetails(@Query() findAllMbDto: FindAllMbDto) {
+    return this.mbService.findDisassembleDetails(findAllMbDto);
+  }
+
+
   // class
   @ApiOperation({summary:"获取班组列表"})
   @Get('class')

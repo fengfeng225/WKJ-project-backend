@@ -122,10 +122,18 @@ export class CreateDisassemblyDto {
   manager: string;
 
   @ApiProperty({
-    example:"number",
-    description:"表示删除"
+    example:"string",
+    description:"拆装操作说明"
   })
   @IsNotEmpty()
-  @IsNumber()
-  deleteMark: number;
+  @IsString()
+  remark: string;
+
+  @ApiProperty({
+    example:"string",
+    description:"盲板所属周期"
+  })
+  @IsNotEmpty()
+  @IsString()
+  cycleType: string;
 }

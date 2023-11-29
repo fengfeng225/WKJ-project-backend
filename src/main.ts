@@ -16,7 +16,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new HttpReqTransformInterceptor())
 
   // 全局管道
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   // 全局配置添加请求前缀
   app.setGlobalPrefix('/api')

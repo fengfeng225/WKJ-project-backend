@@ -7,6 +7,7 @@ import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
 import { MbClass } from './entities/mb-class.entity';
 import { MbShort } from './entities/mb-short.entity';
 import { MbLong } from './entities/mb-long.entity';
+import { MbDisassembly } from './entities/mb-disassembly.entity';
 
 @Injectable()
 export class MbService {
@@ -17,6 +18,8 @@ export class MbService {
     private readonly shortRepository:Repository<MbShort>,
     @InjectRepository(MbLong)
     private readonly longRepository:Repository<MbLong>,
+    @InjectRepository(MbDisassembly)
+    private readonly disassemblyRepository:Repository<MbDisassembly>,
     private dataSource: DataSource
   ){}
 
@@ -38,9 +41,11 @@ export class MbService {
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.save(MbShort, createMbDto)
-      // await this.addDisassembly(createMbDto)
-      return null
+      const disassemblyInfo = {...createMbDto, remark: '新增盲板', cycleType: 'short'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
+
+    return null
   }
 
   async findShortBill({
@@ -117,20 +122,39 @@ export class MbService {
     })
 
     if (isExist) throw new HttpException('当前班组已存在相同编号的盲板，请重试', 400)
+
+    // 判断是否切换盲通
+    const oldStatus = shortBill.status
+    if (updateMbDto.status === oldStatus) {
+      // 没切换
+      await this.shortRepository.save(updateMbDto)
+      return null
+    }
     
-    await this.shortRepository.save(updateMbDto)
+    // 切换，事务处理
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(MbShort, updateMbDto)
+      const disassemblyInfo = {...updateMbDto, remark: `切换为 ${updateMbDto.status}`, cycleType: 'short'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+    })
+
     return null
   }
 
   async removeShortBill(id: number) {
-    const result = await this.shortRepository
-    .createQueryBuilder()
-    .update()
-    .set({deleteMark: 1})
-    .where("id = :id", { id })
-    .execute()
+    const shortBill = await this.shortRepository.findOne({
+      where: {
+        id
+      }
+    })
+    // 事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.update(MbShort, id, {deleteMark: 1})
+      const disassemblyInfo = {...shortBill, remark: '删除盲板', cycleType: 'short'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+    })
 
-    if (result.affected === 1) return null
+    return null
   }
 
 
@@ -252,9 +276,39 @@ export class MbService {
     }
   }
 
-  // 添加拆装明细
-  async addDisassembly(createDisassemblyDto: CreateDisassemblyDto) {
+  // 获取拆装明细
+  async findDisassembleDetails({
+    keyword,
+    classId,
+    pageSize = 20,
+    currentPage = 1
+  }): Promise<{ list: MbDisassembly[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
+    const query = this.disassemblyRepository.createQueryBuilder('disassembly').orderBy("disassembly.creatorTime", "DESC");
+    
+    if (keyword) {
+      query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
+    }
+    if (classId && +classId !== -1) {      
+      query.andWhere(`classId = :classId`, { classId });
+    }
 
+    const total = await query.getCount();
+    
+    query.skip((currentPage - 1) * pageSize).take(pageSize);
+
+    const list = await query.getMany();
+    const pagination = {
+      pageIndex: +currentPage,
+      pageSize: +pageSize,
+      total
+    }
+
+    return { list, pagination }
+  }
+
+  // 添加拆装明细
+  async addDisassembly(createDisassemblyDto: CreateDisassemblyDto, manager) {
+    await manager.save(MbDisassembly, createDisassemblyDto)
   }
 
   // 左边补零

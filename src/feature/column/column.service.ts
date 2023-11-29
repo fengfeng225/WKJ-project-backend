@@ -41,14 +41,14 @@ export class ColumnService {
   }
 
   async findAll(id: number) {
-    const buttons = await this.columnRepository.find({
-      where: {
-        menuId: id
-      }
-    })
+    const columns = await this.columnRepository
+    .createQueryBuilder('column')
+    .where('column.menuId = :id', {id})
+    .orderBy('column.sortCode')
+    .getMany()
 
     return {
-      list: buttons
+      list: columns
     }
   }
 
@@ -61,13 +61,13 @@ export class ColumnService {
   }
 
   async update(id: number, updateColumnDto: UpdateColumnDto) {
-    const button = await this.columnRepository.findOne({
+    const column = await this.columnRepository.findOne({
       where: {
         id
       }
     })
 
-    if (!button) throw new HttpException('无效的表格列', 400)
+    if (!column) throw new HttpException('无效的表格列', 400)
 
     const isExist = await this.columnRepository.findOne({
       where: [

@@ -35,13 +35,6 @@ export class Role {
   description: string;
 
   @Column({
-    type: 'int',
-    default: 1,
-    comment: '启用状态'
-  })
-  enabledMark: number;
-
-  @Column({
       type: 'int',
       default: 0,
       comment: '表示删除'

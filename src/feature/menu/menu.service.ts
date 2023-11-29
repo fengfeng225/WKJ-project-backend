@@ -54,11 +54,11 @@ export class MenuService {
   async findAll(keyword) {
     const flatMenus = await this.dataSource.query(
       `
-      select * from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0
+      select * from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 order by menu.sortCode
       UNION
-      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is null) and m.deleteMark = 0
+      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is null) and m.deleteMark = 0  order by m.sortCode
       UNION
-      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is not null) and m.deleteMark = 0
+      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is not null) and m.deleteMark = 0 order by m.sortCode
       `
     )
     
@@ -71,6 +71,7 @@ export class MenuService {
   async getSelector(id: number) {
     const menus = await this.menuRepository
     .createQueryBuilder('menu')
+    .orderBy("menu.sortCode")
     .where('menu.type = 1')
     .andWhere('menu.deleteMark = 0')
     .andWhere('menu.id != :id', {id})
