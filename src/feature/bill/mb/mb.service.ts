@@ -41,7 +41,7 @@ export class MbService {
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.save(MbShort, createMbDto)
-      const disassemblyInfo = {...createMbDto, remark: '新增盲板', cycleType: 'short'}
+      const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
@@ -153,7 +153,7 @@ export class MbService {
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.update(MbShort, { id: shortId }, {deleteMark: 1})
       const { id, ...basicInfo } = shortBill
-      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除盲板', cycleType: 'short'}
+      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
@@ -179,7 +179,7 @@ export class MbService {
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.save(MbLong, createMbDto)
-      const disassemblyInfo = {...createMbDto, remark: '新增盲板', cycleType: 'long'}
+      const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
@@ -291,7 +291,7 @@ export class MbService {
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.update(MbLong, { id: longId }, {deleteMark: 1})
       const { id, ...basicInfo } = longBill
-      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除盲板', cycleType: 'long'}
+      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
