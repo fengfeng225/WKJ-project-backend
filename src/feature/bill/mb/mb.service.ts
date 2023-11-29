@@ -134,23 +134,26 @@ export class MbService {
     // 切换，事务处理
     await this.dataSource.transaction(async (transactionalEntityManager) => {
       await transactionalEntityManager.save(MbShort, updateMbDto)
-      const disassemblyInfo = {...updateMbDto, remark: `切换为 ${updateMbDto.status}`, cycleType: 'short'}
+      const { id, ...basicInfo } = updateMbDto
+      const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
     return null
   }
 
-  async removeShortBill(id: number) {
+  async removeShortBill(shortId: number) {
+    const creatorTime = new Date()
     const shortBill = await this.shortRepository.findOne({
       where: {
-        id
+        id: shortId
       }
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.update(MbShort, id, {deleteMark: 1})
-      const disassemblyInfo = {...shortBill, remark: '删除盲板', cycleType: 'short'}
+      await transactionalEntityManager.update(MbShort, { id: shortId }, {deleteMark: 1})
+      const { id, ...basicInfo } = shortBill
+      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除盲板', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
 
@@ -173,7 +176,13 @@ export class MbService {
 
     if (isExist) throw new HttpException('该盲板已存在，请重试', 400)
 
-    await this.longRepository.save(createMbDto)
+    // 事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(MbLong, createMbDto)
+      const disassemblyInfo = {...createMbDto, remark: '新增盲板', cycleType: 'long'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+    })
+
     return null
   }
 
@@ -183,8 +192,8 @@ export class MbService {
     pageSize = 20,
     currentPage = 1,
     queryJson
-  }): Promise<{ list: MbShort[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
-    const query = this.longRepository.createQueryBuilder('mbShort').where('deleteMark = 0');
+  }): Promise<{ list: MbLong[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
+    const query = this.longRepository.createQueryBuilder('mbLong').where('deleteMark = 0');
     
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
@@ -233,13 +242,13 @@ export class MbService {
     // 编号长度小于3，用0补齐
     if (updateMbDto.code.length < 3) updateMbDto.code = this.leftFillZero(updateMbDto.code, 3)
     
-    const shortBill = await this.longRepository.findOne({
+    const longBill = await this.longRepository.findOne({
       where: {
         id
       }
     })
 
-    if (!shortBill) throw new HttpException('无效的盲板', 400)
+    if (!longBill) throw new HttpException('无效的盲板', 400)
 
     const isExist = await this.longRepository.findOne({
       where: {
@@ -252,19 +261,41 @@ export class MbService {
 
     if (isExist) throw new HttpException('当前班组已存在相同编号的盲板，请重试', 400)
     
-    await this.longRepository.save(updateMbDto)
+    // 判断是否切换盲通
+    const oldStatus = longBill.status
+    if (updateMbDto.status === oldStatus) {
+      // 没切换
+      await this.longRepository.save(updateMbDto)
+      return null
+    }
+
+    // 切换，事务处理
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(MbLong, updateMbDto)
+      const { id, ...basicInfo } = updateMbDto
+      const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'long'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+    })
+
     return null
   }
 
-  async removeLongBill(id: number) {
-    const result = await this.longRepository
-    .createQueryBuilder()
-    .update()
-    .set({deleteMark: 1})
-    .where("id = :id", { id })
-    .execute()
+  async removeLongBill(longId: number) {
+    const creatorTime = new Date()
+    const longBill = await this.longRepository.findOne({
+      where: {
+        id: longId
+      }
+    })
+    // 事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.update(MbLong, { id: longId }, {deleteMark: 1})
+      const { id, ...basicInfo } = longBill
+      const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除盲板', cycleType: 'long'}
+      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+    })
 
-    if (result.affected === 1) return null
+    return null
   }
 
 

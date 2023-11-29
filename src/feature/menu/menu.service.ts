@@ -34,7 +34,7 @@ export class MenuService {
     return result;
   }
 
-  async create(createMenuDto: CreateMenuDto) {
+  async create(createMenuDto: CreateMenuDto) {    
     const isExist = await this.menuRepository.findOne({
       where: [
         { fullName: createMenuDto.fullName, deleteMark: 0 },
@@ -54,11 +54,11 @@ export class MenuService {
   async findAll(keyword) {
     const flatMenus = await this.dataSource.query(
       `
-      select * from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 order by menu.sortCode
+      select * from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0
       UNION
-      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is null) and m.deleteMark = 0  order by m.sortCode
+      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is null) and m.deleteMark = 0
       UNION
-      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is not null) and m.deleteMark = 0 order by m.sortCode
+      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is not null) and m.deleteMark = 0 order by sortCode
       `
     )
     

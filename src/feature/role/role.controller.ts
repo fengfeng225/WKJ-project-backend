@@ -22,7 +22,7 @@ export class RoleController {
   @ApiOperation({summary:"更新角色权限"})
   @Get('Authorize/:id')
   updateAuthorize(@Param('id') id: number, @Body() updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
-    return this.roleService.updateRoleAuthorizeDto();
+    return this.roleService.updateAuthorize(updateRoleAuthorizeDto);
   }
   
   @ApiOperation({summary:"新增角色"})

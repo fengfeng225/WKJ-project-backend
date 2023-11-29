@@ -58,7 +58,7 @@ export class UserService {
       .createQueryBuilder('menu')
       .leftJoinAndSelect('menu.children', 'children')
       .where('menu.deleteMark = 0')
-      .andWhere('menu.enableMark = 1')
+      .andWhere('menu.enabledMark = 1')
       .andWhere('menu.parentId IS NULL')
       .getMany();
       
@@ -69,7 +69,7 @@ export class UserService {
       .leftJoinAndSelect('menu.buttons', 'button')
       .leftJoinAndSelect('menu.columns', 'column')
       .where('menu.deleteMark = 0')
-      .andWhere('menu.enableMark = 1')
+      .andWhere('menu.enabledMark = 1')
       .getMany();
     } else {
       menus = await this.menuRepository
@@ -80,7 +80,7 @@ export class UserService {
       .leftJoinAndSelect('menu.children', 'children')
       .andWhere('menu.parentId IS NULL')
       .andWhere('menu.deleteMark = 0')
-      .andWhere('menu.enableMark = 1')
+      .andWhere('menu.enabledMark = 1')
       .getMany();
 
       permissionList = await this.menuRepository
@@ -94,7 +94,7 @@ export class UserService {
       .leftJoinAndSelect('menu.columns', 'column', 'rcr.columnPermissionId = column.id')
       .where('urr.userId = :userId', { userId })
       .andWhere('menu.deleteMark = 0')
-      .andWhere('menu.enableMark = 1')
+      .andWhere('menu.enabledMark = 1')
       .getMany();
     }
     
