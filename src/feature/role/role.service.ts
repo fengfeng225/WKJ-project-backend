@@ -86,6 +86,9 @@ export class RoleService {
     const role = await this.roleRepository.findOne({
       where: {
         id
+      },
+      relations: {
+        menus: true
       }
     })
 
@@ -94,6 +97,7 @@ export class RoleService {
 
     // 开启事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
+      
       // 删除角色
       await transactionalEntityManager.remove(role)
     })
