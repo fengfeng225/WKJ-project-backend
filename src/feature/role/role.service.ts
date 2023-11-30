@@ -16,6 +16,12 @@ export class RoleService {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository:Repository<Role>,
+    @InjectRepository(Menu)
+    private readonly menuRepository:Repository<Menu>,
+    @InjectRepository(Button_permission)
+    private readonly buttonRepository:Repository<Button_permission>,
+    @InjectRepository(Column_permission)
+    private readonly columnRepository:Repository<Column_permission>,
     private dataSource: DataSource
   ){}
 
@@ -80,55 +86,90 @@ export class RoleService {
     const role = await this.roleRepository.findOne({
       where: {
         id
-      },
-      relations: {
-        buttons: true,
-        columns: true,
-        menus: true,
-        users: true
       }
     })
 
     // 如果找不到该 Role，抛出异常
-    if (!role) {
-      throw new NotFoundException('没有找到角色');
-    }
+    if (!role) throw new NotFoundException('没有找到角色');
 
     // 开启事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      // 解除与 Button 的关联关系
-      await this.removeRoleFromButtons(role.buttons, id, transactionalEntityManager);
-
-      // 解除与 Column 的关联关系
-      // await this.removeRoleFromColumns(role.columns, id, transactionalEntityManager);
-
-      // 解除与 Menu 的关联关系
-      // await this.removeRoleFromMenus(role.menus, id, transactionalEntityManager);
-
-      // 解除与 User 的关联关系
-      // await this.removeRoleFromUsers(role.users, id, transactionalEntityManager);
-
-      // 删除 Role 对象
-      await transactionalEntityManager.remove(Role, role);
+      // 删除角色
+      await transactionalEntityManager.remove(role)
     })
 
     return null
   }
 
   // 权限
-  async findAllAuthorize(id: number, findRoleAuthorizeDto: FindRoleAuthorizeDto) {
-    
+  async findAllAuthorize(roleId: number, findRoleAuthorizeDto: FindRoleAuthorizeDto) {
+    let list: Menu[], ids: Menu[] | Button_permission[] | Column_permission[], all: Menu[]
+    const { type, menuIds } = findRoleAuthorizeDto
+    const menuIdsToArray = menuIds.split(',')
+
+    switch (type) {
+      case 'menu':
+        list = await this.menuRepository
+        .createQueryBuilder('menu')
+        .where('menu.parentId IS NULL')
+        .leftJoinAndSelect('menu.children', 'children')
+        .getMany()
+
+        ids = await this.menuRepository
+        .createQueryBuilder('menu')
+        .select('menu.id')
+        .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
+        .where('rmr.roleId = :roleId', {roleId})
+        .getMany()
+
+        all = await this.menuRepository
+        .createQueryBuilder('menu')
+        .select('menu.id')
+        .getMany()
+        break;
+      case 'button':
+        list = await this.menuRepository
+        .createQueryBuilder('menu')
+        .where('menu.id in (:...menuIdsToArray)', {menuIdsToArray})
+        .leftJoinAndSelect('menu.buttons', 'buttons')
+        .leftJoinAndSelect('menu.children', 'children')
+        .andWhere('children.id in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
+
+        ids = await this.buttonRepository
+        .createQueryBuilder('button')
+        .select('button.id')
+        .leftJoin('role_button_relation', 'rbr', 'rbr.buttonPermissionId = button.id')
+        .where('rbr.roleId = :roleId', {roleId})
+        .andWhere('button.menuId in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
+
+        all = await this.menuRepository
+        .createQueryBuilder('menu')
+        .select('menu.id')
+        .leftJoin('menu.buttons', 'buttons')
+        .addSelect('buttons.id')
+        .leftJoinAndSelect('menu.children', 'children')
+        .addSelect('children.id')
+        .where('menu.id IN (:...menuIdsToArray)', { menuIdsToArray })
+        .andWhere('children.id IN (:...menuIdsToArray)', { menuIdsToArray })
+        .getMany()
+        break;
+      case 'column':
+
+        break;
+      default:
+        break;
+    }
+
+    return {
+      list,
+      ids,
+      all
+    }
   }
 
   async updateAuthorize(id: number, updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
 
-  }
-
-  // 解除与Button的关联
-  private async removeRoleFromButtons(buttons: Button_permission[], roleId: number, manager): Promise<void> {
-    for (const button of buttons) {
-      button.roles = button.roles.filter(role => role.id !== roleId);
-      await manager.save(Button_permission, button);
-    }
   }
 }

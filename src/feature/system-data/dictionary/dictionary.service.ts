@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
+import { Repository, Not, DataSource } from 'typeorm';
 import { CreateDictionaryDto } from './dto/create-dictionary.dto';
 import { UpdateDictionaryDto } from './dto/update-dictionary.dto';
 import { CreateOptionDto } from './dto/create-option.dto';
@@ -14,7 +14,8 @@ export class DictionaryService {
     @InjectRepository(Dictionary)
     private readonly dictionaryRepository:Repository<Dictionary>,
     @InjectRepository(SelectOption)
-    private readonly optionRepository:Repository<SelectOption>
+    private readonly optionRepository:Repository<SelectOption>,
+    private dataSource: DataSource
   ){}
 
   // 字段
@@ -70,13 +71,31 @@ export class DictionaryService {
   }
 
   async removeDictionary(id: number) {
-    const result = await this.dictionaryRepository
-    .createQueryBuilder()
-    .delete()
-    .where("id = :id", { id })
-    .execute()
+    // 查找要删除的 dictionary 对象
+    const dictionary = await this.dictionaryRepository.findOne({
+      where: {
+        id
+      },
+      relations: {
+        options: true
+      }
+    })
 
-    if (result.affected === 1) return null
+    // 如果找不到该 dictionary
+    if (!dictionary) throw new NotFoundException('没有找到字段');
+
+    // 开启事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      // 删除关联的 option 对象
+      for (const option of dictionary.options) {
+        await transactionalEntityManager.remove(option);
+      }
+
+      // 删除 dictionary 对象
+      await transactionalEntityManager.remove(dictionary);
+    })
+
+    return null
   }
 
   // 选项

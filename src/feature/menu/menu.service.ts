@@ -6,7 +6,6 @@ import { Repository, DataSource, Not  } from 'typeorm';
 import { Menu } from './entities/menu.entity';
 import { Button_permission } from '../button/entities/button_permission.entity';
 import { Column_permission } from '../column/entities/column_permission.entity';
-import { Role } from '../role/entities/role.entity';
 
 @Injectable()
 export class MenuService {
@@ -136,9 +135,7 @@ export class MenuService {
     })
 
     // 如果找不到该 Menu，抛出异常
-    if (!menu) {
-      throw new NotFoundException('没有找到菜单');
-    }
+    if (!menu) throw new NotFoundException('没有找到菜单');
 
     // 开启事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
@@ -148,11 +145,8 @@ export class MenuService {
       // 删除关联的 Column 对象
       await this.deleteAssociatedColumns(menu.columns, transactionalEntityManager);
 
-      // 解除与 Role 的关联关系
-      await this.removeMenuFromRoles(menu.roles, id, transactionalEntityManager);
-
       // 删除 Menu 对象
-      await transactionalEntityManager.remove(Menu, menu);
+      await transactionalEntityManager.remove(menu);
     })
 
     return null
@@ -161,22 +155,14 @@ export class MenuService {
   // 删除关联的button
   private async deleteAssociatedButtons(buttons: Button_permission[], manager): Promise<void> {
     for (const button of buttons) {
-      await manager.remove(Button_permission, button);
+      await manager.remove(button);
     }
   }
 
   // 删除关联的column
   private async deleteAssociatedColumns(columns: Column_permission[], manager): Promise<void> {
     for (const column of columns) {
-      await manager.remove(Column_permission, column);
-    }
-  }
-
-  // 解除与role的关联
-  private async removeMenuFromRoles(roles: Role[], menuId: number, manager): Promise<void> {
-    for (const role of roles) {
-      role.menus = role.menus.filter(menu => menu.id !== menuId);
-      await manager.save(Role, role);
+      await manager.remove(column);
     }
   }
 }
