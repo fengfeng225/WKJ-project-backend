@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, HttpException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -57,8 +57,7 @@ export class UserService {
       menus = await this.menuRepository
       .createQueryBuilder('menu')
       .leftJoinAndSelect('menu.children', 'children')
-      .where('menu.deleteMark = 0')
-      .andWhere('menu.enabledMark = 1')
+      .where('menu.enabledMark = 1')
       .andWhere('menu.parentId IS NULL')
       .getMany();
       
@@ -68,8 +67,7 @@ export class UserService {
       .select(['menu.id', 'menu.fullName'])
       .leftJoinAndSelect('menu.buttons', 'button')
       .leftJoinAndSelect('menu.columns', 'column')
-      .where('menu.deleteMark = 0')
-      .andWhere('menu.enabledMark = 1')
+      .where('menu.enabledMark = 1')
       .getMany();
     } else {
       menus = await this.menuRepository
@@ -79,7 +77,6 @@ export class UserService {
       .where('urr.userId = :userId', { userId })
       .leftJoinAndSelect('menu.children', 'children')
       .andWhere('menu.parentId IS NULL')
-      .andWhere('menu.deleteMark = 0')
       .andWhere('menu.enabledMark = 1')
       .getMany();
 
@@ -93,7 +90,6 @@ export class UserService {
       .leftJoinAndSelect('menu.buttons', 'button', 'rbr.buttonPermissionId = button.id')
       .leftJoinAndSelect('menu.columns', 'column', 'rcr.columnPermissionId = column.id')
       .where('urr.userId = :userId', { userId })
-      .andWhere('menu.deleteMark = 0')
       .andWhere('menu.enabledMark = 1')
       .getMany();
     }
@@ -107,7 +103,7 @@ export class UserService {
 
   // 更新密码
   async updatePassword(userId: number, updateUserDto) {
-    if (updateUserDto.password !== updateUserDto.password2) throw new HttpException('密码输入不一致，请重试', 404);
+    if (updateUserDto.password !== updateUserDto.password2) throw new ConflictException('密码输入不一致，请重试');
 
     const result = await this.userRepository
     .createQueryBuilder()

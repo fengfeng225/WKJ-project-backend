@@ -57,13 +57,6 @@ export class Menu {
   @Column({
     type: 'int',
     default: 0,
-    comment: '表示删除'
-  })
-  deleteMark: number;
-
-  @Column({
-    type: 'int',
-    default: 0,
     comment: '排序'
   })
   sortCode: number;

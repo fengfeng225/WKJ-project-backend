@@ -1,9 +1,12 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Not  } from 'typeorm';
 import { Menu } from './entities/menu.entity';
+import { Button_permission } from '../button/entities/button_permission.entity';
+import { Column_permission } from '../column/entities/column_permission.entity';
+import { Role } from '../role/entities/role.entity';
 
 @Injectable()
 export class MenuService {
@@ -37,12 +40,12 @@ export class MenuService {
   async create(createMenuDto: CreateMenuDto) {    
     const isExist = await this.menuRepository.findOne({
       where: [
-        { fullName: createMenuDto.fullName, deleteMark: 0 },
-        { entityCode: createMenuDto.entityCode, deleteMark: 0 }
+        { fullName: createMenuDto.fullName },
+        { entityCode: createMenuDto.entityCode }
       ]
     })    
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
 
     if (createMenuDto.parentId === -1) createMenuDto.parentId = null
     
@@ -54,11 +57,11 @@ export class MenuService {
   async findAll(keyword) {
     const flatMenus = await this.dataSource.query(
       `
-      select * from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0
+      select * from menu where menu.fullName like '%${keyword}%'
       UNION
-      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is null) and m.deleteMark = 0
+      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.parentId is null)
       UNION
-      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.deleteMark = 0 and menu.parentId is not null) and m.deleteMark = 0 order by sortCode
+      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.parentId is not null) order by sortCode
       `
     )
     
@@ -73,7 +76,6 @@ export class MenuService {
     .createQueryBuilder('menu')
     .orderBy("menu.sortCode")
     .where('menu.type = 1')
-    .andWhere('menu.deleteMark = 0')
     .andWhere('menu.id != :id', {id})
     .getMany();
 
@@ -97,16 +99,16 @@ export class MenuService {
       }
     })
 
-    if (!menu) throw new HttpException('无效的菜单', 400)
+    if (!menu) throw new NotFoundException('没有找到菜单')
 
     const isExist = await this.menuRepository.findOne({
       where: [
-        { fullName: updateMenuDto.fullName, deleteMark: 0, id: Not(updateMenuDto.id) },
-        { entityCode: updateMenuDto.entityCode, deleteMark: 0, id: Not(updateMenuDto.id) }
+        { fullName: updateMenuDto.fullName, id: Not(updateMenuDto.id) },
+        { entityCode: updateMenuDto.entityCode, id: Not(updateMenuDto.id) }
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.menuRepository.save(updateMenuDto)
     return null
@@ -115,20 +117,66 @@ export class MenuService {
   async remove(id: number) {
     const hasChildren = await this.menuRepository.findOne({
       where: {
-        parentId: id,
-        deleteMark: 0
+        parentId: id
       }
     })
 
-    if (hasChildren) throw new HttpException('该目录下还存在页面，不允许删除', 400)
+    if (hasChildren) throw new ConflictException('该目录下还存在页面，不允许删除')
 
-    const result = await this.menuRepository
-    .createQueryBuilder('menu')
-    .update()
-    .set({deleteMark: 1})
-    .where("id = :id", { id })
-    .execute()
+    // 查找要删除的 Menu 对象
+    const menu = await this.menuRepository.findOne({
+      where: {
+        id
+      },
+      relations: {
+        buttons: true,
+        columns: true,
+        roles: true
+      }
+    })
 
-    if (result.affected === 1) return null
+    // 如果找不到该 Menu，抛出异常
+    if (!menu) {
+      throw new NotFoundException('没有找到菜单');
+    }
+
+    // 开启事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      // 删除关联的 Button 对象
+      await this.deleteAssociatedButtons(menu.buttons, transactionalEntityManager);
+
+      // 删除关联的 Column 对象
+      await this.deleteAssociatedColumns(menu.columns, transactionalEntityManager);
+
+      // 解除与 Role 的关联关系
+      await this.removeMenuFromRoles(menu.roles, id, transactionalEntityManager);
+
+      // 删除 Menu 对象
+      await transactionalEntityManager.remove(Menu, menu);
+    })
+
+    return null
+  }
+
+  // 删除关联的button
+  private async deleteAssociatedButtons(buttons: Button_permission[], manager): Promise<void> {
+    for (const button of buttons) {
+      await manager.remove(Button_permission, button);
+    }
+  }
+
+  // 删除关联的column
+  private async deleteAssociatedColumns(columns: Column_permission[], manager): Promise<void> {
+    for (const column of columns) {
+      await manager.remove(Column_permission, column);
+    }
+  }
+
+  // 解除与role的关联
+  private async removeMenuFromRoles(roles: Role[], menuId: number, manager): Promise<void> {
+    for (const role of roles) {
+      role.menus = role.menus.filter(menu => menu.id !== menuId);
+      await manager.save(Role, role);
+    }
   }
 }

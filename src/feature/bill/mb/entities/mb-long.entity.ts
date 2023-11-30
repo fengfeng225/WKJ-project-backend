@@ -83,7 +83,8 @@ export class MbLong {
   @Column({
       type: 'int',
       default: 0,
-      comment: '表示删除'
+      comment: '表示删除',
+      select: false
   })
   deleteMark: number;
 

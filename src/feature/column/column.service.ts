@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Column_permission } from './entities/column_permission.entity';
@@ -20,7 +20,7 @@ export class ColumnService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
 
     await this.columnRepository.save(createColumnDto)
     return null
@@ -67,7 +67,7 @@ export class ColumnService {
       }
     })
 
-    if (!column) throw new HttpException('无效的表格列', 400)
+    if (!column) throw new NotFoundException('没有找到表格列')
 
     const isExist = await this.columnRepository.findOne({
       where: [
@@ -76,7 +76,7 @@ export class ColumnService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.columnRepository.save(updateColumnDto)
     return null

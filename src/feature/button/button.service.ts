@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Button_permission } from './entities/button_permission.entity';
@@ -20,7 +20,7 @@ export class ButtonService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
 
     await this.buttonRepository.save(createButtonDto)
     return null
@@ -53,7 +53,7 @@ export class ButtonService {
       }
     })
 
-    if (!button) throw new HttpException('无效的按钮', 400)
+    if (!button) throw new NotFoundException('无效的按钮')
 
     const isExist = await this.buttonRepository.findOne({
       where: [
@@ -62,7 +62,7 @@ export class ButtonService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.buttonRepository.save(updateButtonDto)
     return null

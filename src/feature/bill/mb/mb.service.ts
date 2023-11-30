@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
@@ -36,7 +36,7 @@ export class MbService {
       }
     })
 
-    if (isExist) throw new HttpException('该盲板已存在，请重试', 400)
+    if (isExist) throw new ConflictException('当前班组已存在相同编号的盲板，请重试')
     
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
@@ -110,7 +110,7 @@ export class MbService {
       }
     })
 
-    if (!shortBill) throw new HttpException('无效的盲板', 400)
+    if (!shortBill) throw new NotFoundException('没有找到盲板')
 
     const isExist = await this.shortRepository.findOne({
       where: {
@@ -121,7 +121,7 @@ export class MbService {
       }
     })
 
-    if (isExist) throw new HttpException('当前班组已存在相同编号的盲板，请重试', 400)
+    if (isExist) throw new ConflictException('当前班组已存在相同编号的盲板，请重试')
 
     // 判断是否切换盲通
     const oldStatus = shortBill.status
@@ -174,7 +174,7 @@ export class MbService {
       }
     })
 
-    if (isExist) throw new HttpException('该盲板已存在，请重试', 400)
+    if (isExist) throw new ConflictException('当前班组已存在相同编号的盲板，请重试')
 
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
@@ -248,7 +248,7 @@ export class MbService {
       }
     })
 
-    if (!longBill) throw new HttpException('无效的盲板', 400)
+    if (!longBill) throw new NotFoundException('没有找到盲板')
 
     const isExist = await this.longRepository.findOne({
       where: {
@@ -259,7 +259,7 @@ export class MbService {
       }
     })
 
-    if (isExist) throw new HttpException('当前班组已存在相同编号的盲板，请重试', 400)
+    if (isExist) throw new ConflictException('当前班组已存在相同编号的盲板，请重试')
     
     // 判断是否切换盲通
     const oldStatus = longBill.status

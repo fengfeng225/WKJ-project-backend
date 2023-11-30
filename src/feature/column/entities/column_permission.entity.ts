@@ -35,7 +35,7 @@ export class Column_permission {
 
   @Column({
     type: 'int',
-    nullable: true,
+    default: 0,
     comment: '排序'
   })
   sortCode: number;

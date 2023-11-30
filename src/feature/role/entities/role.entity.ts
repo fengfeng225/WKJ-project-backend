@@ -2,8 +2,7 @@ import {
   Column,
   Entity,
   ManyToMany,
-  PrimaryGeneratedColumn,
-  JoinTable
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Menu } from '../../menu/entities/menu.entity';
@@ -37,13 +36,14 @@ export class Role {
   @Column({
       type: 'int',
       default: 0,
-      comment: '表示删除'
+      comment: '表示删除',
+      select: false
   })
   deleteMark: number;
 
   @Column({
     type: 'int',
-    nullable: true,
+    default: 0,
     comment: '排序'
   })
   sortCode: number;

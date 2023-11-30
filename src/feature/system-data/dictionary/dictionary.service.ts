@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { CreateDictionaryDto } from './dto/create-dictionary.dto';
@@ -26,7 +26,7 @@ export class DictionaryService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复，请重试', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
 
     await this.dictionaryRepository.save(createDictionaryDto)
     return null
@@ -54,7 +54,7 @@ export class DictionaryService {
       }
     })
 
-    if (!dictionary) throw new HttpException('无效的字段', 400)
+    if (!dictionary) throw new NotFoundException('没有找到字段')
 
     const isExist = await this.dictionaryRepository.findOne({
       where: [
@@ -63,7 +63,7 @@ export class DictionaryService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.dictionaryRepository.save(updateDictionaryDto)
     return null
@@ -112,7 +112,7 @@ export class DictionaryService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复，请重试', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
 
     await this.optionRepository.save(createOptionDto)
     return null
@@ -144,7 +144,7 @@ export class DictionaryService {
       }
     })
 
-    if (!option) throw new HttpException('无效的选项', 400)
+    if (!option) throw new NotFoundException('没有找到选项')
 
     const isExist = await this.optionRepository.findOne({
       where: [
@@ -153,7 +153,7 @@ export class DictionaryService {
       ]
     })
 
-    if (isExist) throw new HttpException('名称或编码重复', 400)
+    if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.optionRepository.save(updateOptionDto)
     return null
