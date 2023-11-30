@@ -13,8 +13,8 @@ import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Menu {
-  @PrimaryGeneratedColumn({ comment: '自然主键' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid', { comment: '自然主键' })
+  id: string;
 
   @Column({
     type: 'int',
@@ -75,7 +75,7 @@ export class Menu {
   lastModifyTime: Date;
 
   @Column({ nullable: true, comment: '父级的ID' })
-  parentId: number;
+  parentId: string;
 
   @ManyToOne(() => Menu, menu => menu.children)
   parent: Menu;

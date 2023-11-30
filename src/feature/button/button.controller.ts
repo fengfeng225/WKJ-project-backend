@@ -18,8 +18,8 @@ export class ButtonController {
 
   @ApiOperation({summary:"获取当前菜单的按钮列表"})
   @Get('list/:id')
-  findAll(@Param('id') id:number) {
-    return this.buttonService.findAll(+id);
+  findAll(@Param('id') id:string) {
+    return this.buttonService.findAll(id);
   }
 
   @ApiOperation({summary:"获取按钮信息"})

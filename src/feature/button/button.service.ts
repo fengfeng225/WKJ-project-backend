@@ -26,7 +26,7 @@ export class ButtonService {
     return null
   }
 
-  async findAll(id: number) {
+  async findAll(id: string) {
     const buttons = await this.buttonRepository
     .createQueryBuilder('button')
     .where('button.menuId = :id', {id})

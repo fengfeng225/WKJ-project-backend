@@ -40,7 +40,7 @@ export class ColumnService {
     return null
   }
 
-  async findAll(id: number) {
+  async findAll(id: string) {
     const columns = await this.columnRepository
     .createQueryBuilder('column')
     .where('column.menuId = :id', {id})

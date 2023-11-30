@@ -86,21 +86,13 @@ export class RoleService {
     const role = await this.roleRepository.findOne({
       where: {
         id
-      },
-      relations: {
-        menus: true
       }
     })
-
+    
     // 如果找不到该 Role，抛出异常
     if (!role) throw new NotFoundException('没有找到角色');
 
-    // 开启事务
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      
-      // 删除角色
-      await transactionalEntityManager.remove(role)
-    })
+    await this.roleRepository.softRemove(role)
 
     return null
   }
@@ -136,8 +128,6 @@ export class RoleService {
         .createQueryBuilder('menu')
         .where('menu.id in (:...menuIdsToArray)', {menuIdsToArray})
         .leftJoinAndSelect('menu.buttons', 'buttons')
-        .leftJoinAndSelect('menu.children', 'children')
-        .andWhere('children.id in (:...menuIdsToArray)', {menuIdsToArray})
         .getMany()
 
         ids = await this.buttonRepository
@@ -168,8 +158,8 @@ export class RoleService {
 
     return {
       list,
-      ids,
-      all
+      ids: ids.map(item => item.id),
+      all: all.map(item => item.id)
     }
   }
 

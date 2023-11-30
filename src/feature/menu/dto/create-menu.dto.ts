@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateMenuDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"父级Id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  parentId: number;
+  @IsString()
+  parentId: string;
 
   @ApiProperty({
     example:"string",

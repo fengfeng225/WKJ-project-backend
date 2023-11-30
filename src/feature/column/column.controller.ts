@@ -24,8 +24,8 @@ export class ColumnController {
 
   @ApiOperation({summary:"获取当前菜单的表格列列表"})
   @Get('list/:id')
-  findAll(@Param('id') id:number) {
-    return this.columnService.findAll(+id);
+  findAll(@Param('id') id:string) {
+    return this.columnService.findAll(id);
   }
 
   @ApiOperation({summary:"获取表格列信息"})

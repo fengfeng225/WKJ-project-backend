@@ -18,7 +18,7 @@ export class MenuController {
 
   @ApiOperation({summary:"获取目录"})
   @Get('selector/:id')
-  getSelector(@Param('id') id: number) {
+  getSelector(@Param('id') id: string) {
     return this.menuService.getSelector(id);
   }
 
@@ -33,8 +33,8 @@ export class MenuController {
 
   @ApiOperation({summary:"菜单信息"})
   @Get('info/:id')
-  findOne(@Param('id') id: number) {
-    return this.menuService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.menuService.findOne(id);
   }
 
   @ApiOperation({summary:"更新菜单"})
@@ -42,13 +42,13 @@ export class MenuController {
     type: UpdateMenuDto
   })
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateMenuDto: UpdateMenuDto) {
-    return this.menuService.update(+id, updateMenuDto);
+  update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
+    return this.menuService.update(id, updateMenuDto);
   }
 
   @ApiOperation({summary:"删除菜单"})
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.menuService.remove(+id);
+  remove(@Param('id') id: string) {
+    return this.menuService.remove(id);
   }
 }

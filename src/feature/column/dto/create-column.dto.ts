@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 export class CreateColumnDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"所属菜单Id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  menuId: number;
+  @IsString()
+  menuId: string;
 
   @ApiProperty({
     example:"string",

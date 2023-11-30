@@ -14,7 +14,6 @@ export class FindRoleAuthorizeDto {
     example:"string",
     description:"菜单id"
   })
-  @IsNotEmpty()
   @IsString()
   menuIds: string;
 }

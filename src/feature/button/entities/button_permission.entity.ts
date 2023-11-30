@@ -50,7 +50,7 @@ export class Button_permission {
   menu: Menu
 
   @Column({comment: '所属菜单ID'})
-  menuId: number
+  menuId: string
 
   @ManyToMany(() => Role, (role) => role.buttons)
   @JoinTable({

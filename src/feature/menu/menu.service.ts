@@ -16,7 +16,7 @@ export class MenuService {
   ){}
 
   private buildMenuTree(flatMenus: Menu[]): Menu[] {
-    const menuMap = new Map<number, Menu>();
+    const menuMap = new Map<string, Menu>();
     const result: Menu[] = [];
 
     for (const menu of flatMenus) {
@@ -46,7 +46,7 @@ export class MenuService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    if (createMenuDto.parentId === -1) createMenuDto.parentId = null
+    if (createMenuDto.parentId === '-1') createMenuDto.parentId = null
     
     await this.menuRepository.save(createMenuDto)
 
@@ -70,7 +70,7 @@ export class MenuService {
     }
   }
 
-  async getSelector(id: number) {
+  async getSelector(id: string) {
     const menus = await this.menuRepository
     .createQueryBuilder('menu')
     .orderBy("menu.sortCode")
@@ -83,7 +83,7 @@ export class MenuService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return await this.menuRepository.findOne({
       where: {
         id
@@ -91,7 +91,7 @@ export class MenuService {
     })
   }
 
-  async update(id: number, updateMenuDto: UpdateMenuDto) {    
+  async update(id: string, updateMenuDto: UpdateMenuDto) {    
     const menu = await this.menuRepository.findOne({
       where: {
         id
@@ -113,7 +113,7 @@ export class MenuService {
     return null
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const hasChildren = await this.menuRepository.findOne({
       where: {
         parentId: id

@@ -6,6 +6,7 @@ import {
 } from 'typeorm';
 import { MbShort } from './mb-short.entity';
 import { MbLong } from './mb-long.entity';
+import { MbDisassembly } from './mb-disassembly.entity';
 
 @Entity()
 export class MbClass {
@@ -37,4 +38,7 @@ export class MbClass {
 
   @OneToMany(() => MbLong, (mbLong) => mbLong.class)
   mbLongs: MbLong[];
+
+  @OneToMany(() => MbDisassembly, (mbDisassembly) => mbDisassembly.class)
+  mbDisassemblys: MbDisassembly[];
 }
