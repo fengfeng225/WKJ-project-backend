@@ -96,7 +96,7 @@ export class RoleService {
     return null
   }
 
-  // 权限
+  // 获取角色拥有的权限
   async findAllAuthorize(roleId: string, findRoleAuthorizeDto: FindRoleAuthorizeDto) {
     let list: Menu[], ids: Menu[] | Button_permission[] | Column_permission[], all
     const { type, menuIds } = findRoleAuthorizeDto
@@ -143,7 +143,7 @@ export class RoleService {
         .andWhere('button.menuId in (:...menuIdsToArray)', {menuIdsToArray})
         .getMany()
 
-        all = menusInButtonPage.map(menu => {return {id: menu.id}}).concat(buttons.map(button => {return {id: button.id}}))
+        all = menuButtonTree.map(menu => {return {id: menu.id}}).concat(buttons.map(button => {return {id: button.id}}))
         
         break;
       case 'column':
@@ -167,7 +167,7 @@ export class RoleService {
         .andWhere('column.menuId in (:...menuIdsToArray)', {menuIdsToArray})
         .getMany()
 
-        all = menusInColumnPage.map(menu => {return {id: menu.id}}).concat(columns.map(column => {return {id: column.id}}))
+        all = menuColumnTree.map(menu => {return {id: menu.id}}).concat(columns.map(column => {return {id: column.id}}))
         break;
       default:
         break;
@@ -180,8 +180,36 @@ export class RoleService {
     }
   }
 
+  // 更新角色权限
   async updateAuthorize(id: string, updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
-    
+    const { menus, buttons, columns } = updateRoleAuthorizeDto
+    const role = await this.roleRepository.findOne({
+      where: {
+        id
+      }
+    })
+
+    if (!role) throw new NotFoundException('没有找到角色');
+
+    const newMenus = await this.menuRepository
+    .createQueryBuilder('menu')
+    .where('menu.id in (:...menus)', {menus})
+    .getMany()
+    const newButtons = await this.buttonRepository
+    .createQueryBuilder('button')
+    .where('button.id in (:...buttons)', {buttons})
+    .getMany()
+    const newColumns = await this.columnRepository
+    .createQueryBuilder('column')
+    .where('column.id in (:...columns)', {columns})
+    .getMany()    
+
+    role.menus = newMenus
+    role.buttons = newButtons
+    role.columns = newColumns
+    await this.roleRepository.save(role)
+
+    return null
   }
 
   private mergeButtonColumnAndMenu(menus, children: Button_permission[] | Column_permission[]): Menu[] {
@@ -190,7 +218,10 @@ export class RoleService {
       const actionMenu = cloneMenus.find(menu => menu.id === child.menuId);
       (actionMenu.children ??= []).push(child)
     }
-    return cloneMenus
+    const menuChildren = cloneMenus.filter(menu => menu.children && menu.children.length > 0)
+    const parentIds = menuChildren.map(menu => menu.parentId)
+    const menuParent = cloneMenus.filter(menu => parentIds.includes(menu.id))
+    return menuChildren.concat(menuParent)
   }
 
   private buildMenuTree(flatMenus: Menu[]): Menu[] {
