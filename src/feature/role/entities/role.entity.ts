@@ -2,8 +2,9 @@ import {
   Column,
   Entity,
   ManyToMany,
-  PrimaryGeneratedColumn,
-  DeleteDateColumn
+  PrimaryColumn,
+  DeleteDateColumn,
+  BeforeInsert
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Menu } from '../../menu/entities/menu.entity';
@@ -12,8 +13,13 @@ import { Column_permission } from 'src/feature/column/entities/column_permission
 
 @Entity()
 export class Role {
-  @PrimaryGeneratedColumn({comment: '自然主键'})
-  id: number;
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     length: 50,
@@ -33,14 +39,6 @@ export class Role {
     comment: '说明'
   })
   description: string;
-
-  @Column({
-      type: 'int',
-      default: 0,
-      comment: '表示删除',
-      select: false
-  })
-  deleteMark: number;
 
   @Column({
     type: 'int',
@@ -69,4 +67,10 @@ export class Role {
 
   @ManyToMany(() => Column_permission, {cascade: true})
   columns: Column_permission[];
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

@@ -3,20 +3,20 @@ import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 export class UpdateMbDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
   
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"所属班组Id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  classId: number;
+  @IsString()
+  classId: string;
 
   @ApiProperty({
     example:"string",

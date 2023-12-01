@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class UpdateRoleDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
   
   @ApiProperty({
     example:"string",

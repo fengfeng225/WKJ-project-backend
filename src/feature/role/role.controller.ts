@@ -14,13 +14,13 @@ export class RoleController {
 
   @ApiOperation({summary:"获取角色权限"})
   @Get('Authorize/:id')
-  findAllAuthorize(@Param('id') id: number, @Query() findRoleAuthorizeDto: FindRoleAuthorizeDto) {
+  findAllAuthorize(@Param('id') id: string, @Query() findRoleAuthorizeDto: FindRoleAuthorizeDto) {    
     return this.roleService.findAllAuthorize(id, findRoleAuthorizeDto);
   }
 
   @ApiOperation({summary:"更新角色权限"})
   @Put('Authorize/:id')
-  updateAuthorize(@Param('id') id: number, @Body() updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
+  updateAuthorize(@Param('id') id: string, @Body() updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
     return this.roleService.updateAuthorize(id, updateRoleAuthorizeDto);
   }
   
@@ -38,19 +38,19 @@ export class RoleController {
 
   @ApiOperation({summary:"获取角色信息"})
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.roleService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.roleService.findOne(id);
   }
 
   @ApiOperation({summary:"更新角色"})
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateRoleDto: UpdateRoleDto) {
-    return this.roleService.update(+id, updateRoleDto);
+  update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    return this.roleService.update(id, updateRoleDto);
   }
 
   @ApiOperation({summary:"删除角色"})
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.roleService.remove(+id);
+  remove(@Param('id') id: string) {
+    return this.roleService.remove(id);
   }
 }

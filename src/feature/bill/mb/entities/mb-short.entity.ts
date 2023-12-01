@@ -2,14 +2,21 @@ import {
   Column,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryColumn,
+  DeleteDateColumn,
+  BeforeInsert
 } from 'typeorm';
 import { MbClass } from './mb-class.entity';
 
 @Entity()
 export class MbShort {
-  @PrimaryGeneratedColumn({ comment: '自然主键' })
-  id: number;
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     length: 50,
@@ -80,13 +87,8 @@ export class MbShort {
   })
   material: string;
 
-  @Column({
-      type: 'int',
-      default: 0,
-      comment: '表示删除',
-      select: false
-  })
-  deleteMark: number;
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 
   @Column({
     length: 50,
@@ -107,8 +109,14 @@ export class MbShort {
   lastModifyTime: Date;
 
   @Column({comment: '所属班组ID'})
-  classId: number;
+  classId: string;
 
   @ManyToOne(() => MbClass, {cascade: true})
   class: MbClass;
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

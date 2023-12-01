@@ -1,22 +1,22 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class UpdateOptionDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"Id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
   
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"所属字段Id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  dictionaryId: number;
+  @IsString()
+  dictionaryId: string;
 
   @ApiProperty({
     example:"string",

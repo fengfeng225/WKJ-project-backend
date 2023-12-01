@@ -2,14 +2,20 @@ import {
   Column,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryColumn,
+  BeforeInsert
 } from 'typeorm';
 import { MbClass } from './mb-class.entity';
 
 @Entity()
 export class MbDisassembly {
-  @PrimaryGeneratedColumn({ comment: '自然主键' })
-  id: number;
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     length: 50,
@@ -108,8 +114,14 @@ export class MbDisassembly {
   cycleType: string;
 
   @Column({comment: '所属班组ID'})
-  classId: number;
+  classId: string;
 
   @ManyToOne(() => MbClass, {cascade: true})
   class: MbClass;
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

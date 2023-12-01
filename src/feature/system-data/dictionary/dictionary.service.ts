@@ -29,7 +29,8 @@ export class DictionaryService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    await this.dictionaryRepository.save(createDictionaryDto)
+    const entity = this.dictionaryRepository.create(createDictionaryDto)
+    await this.dictionaryRepository.save(entity)
     return null
   }
 
@@ -40,7 +41,7 @@ export class DictionaryService {
     }
   }
 
-  async findOneDictionary(id: number) {
+  async findOneDictionary(id: string) {
     return await this.dictionaryRepository.findOne({
       where: {
         id
@@ -48,7 +49,7 @@ export class DictionaryService {
     })
   }
 
-  async updateDictionary(id: number, updateDictionaryDto: UpdateDictionaryDto) {
+  async updateDictionary(id: string, updateDictionaryDto: UpdateDictionaryDto) {
     const dictionary = await this.dictionaryRepository.findOne({
       where: {
         id
@@ -70,7 +71,7 @@ export class DictionaryService {
     return null
   }
 
-  async removeDictionary(id: number) {
+  async removeDictionary(id: string) {
     // 查找要删除的 dictionary 对象
     const dictionary = await this.dictionaryRepository.findOne({
       where: {
@@ -133,11 +134,12 @@ export class DictionaryService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    await this.optionRepository.save(createOptionDto)
+    const entity = this.optionRepository.create(createOptionDto)
+    await this.optionRepository.save(entity)
     return null
   }
 
-  async findAllOption(id: number, keyword: string) {
+  async findAllOption(id: string, keyword: string) {
     const query = this.optionRepository.createQueryBuilder().where('dictionaryId = :id', {id})
 
     if (keyword) query.andWhere(`fullName LIKE :keyword`, { keyword: `%${keyword}%` })
@@ -148,7 +150,7 @@ export class DictionaryService {
     }
   }
 
-  async findOneOption(id: number) {
+  async findOneOption(id: string) {
     return await this.optionRepository.findOne({
       where: {
         id
@@ -156,7 +158,7 @@ export class DictionaryService {
     })
   }
 
-  async updateOption(id: number, updateOptionDto: UpdateOptionDto) {
+  async updateOption(id: string, updateOptionDto: UpdateOptionDto) {
     const option = await this.optionRepository.findOne({
       where: {
         id
@@ -178,13 +180,13 @@ export class DictionaryService {
     return null
   }
 
-  async removeOption(id: number) {
-    const result = await this.optionRepository
+  async removeOption(id: string) {
+    await this.optionRepository
     .createQueryBuilder()
     .delete()
     .where("id = :id", { id })
     .execute()
 
-    if (result.affected === 1) return null
+    return null
   }
 }

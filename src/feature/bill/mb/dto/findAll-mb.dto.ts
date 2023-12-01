@@ -6,7 +6,7 @@ export class FindAllMbDto {
     description:"班组Id"
   })
   @IsOptional()
-  classId: number;
+  classId: string;
 
   @ApiProperty({
     description:"关键词(编号)"

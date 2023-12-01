@@ -18,8 +18,8 @@ export class ColumnController {
 
   @ApiOperation({summary:"批量新增表格列"})
   @Post('batchCreate/:menuId')
-  batchCreate(@Body() columnData) {
-    return this.columnService.batchCreate(columnData);
+  batchCreate(@Body() columnData, @Param('menuId') menuId: string) {
+    return this.columnService.batchCreate(menuId, columnData);
   }
 
   @ApiOperation({summary:"获取当前菜单的表格列列表"})
@@ -30,20 +30,20 @@ export class ColumnController {
 
   @ApiOperation({summary:"获取表格列信息"})
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.columnService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.columnService.findOne(id);
   }
 
   @ApiOperation({summary:"更新表格列"})
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateColumnDto: UpdateColumnDto) {
-    return this.columnService.update(+id, updateColumnDto);
+  update(@Param('id') id: string, @Body() updateColumnDto: UpdateColumnDto) {
+    return this.columnService.update(id, updateColumnDto);
   }
 
   @ApiOperation({summary:"删除表格列"})
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.columnService.remove(+id);
+  remove(@Param('id') id: string) {
+    return this.columnService.remove(id);
   }
 
 

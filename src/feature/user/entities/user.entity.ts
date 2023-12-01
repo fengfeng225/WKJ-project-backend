@@ -1,19 +1,23 @@
 import {
     Column,
     Entity,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
     ManyToMany,
     JoinTable,
-    Timestamp
+    BeforeInsert,
+    DeleteDateColumn
 } from "typeorm";
-import { Exclude } from 'class-transformer';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class User{
-    // 自增唯一主键
-    @PrimaryGeneratedColumn({ comment: '用户ID' })
-    id:number;
+    @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+    id: string;
+
+    @BeforeInsert()
+    generateId() {
+      this.id = generateUniqueId();
+    }
 
     @Column({
         length: 50,
@@ -21,11 +25,11 @@ export class User{
     })
     account:string;
 
-    @Exclude()
     @Column({
         length: 50,
         default: 'e10adc3949ba59abbe56e057f20f883e',
-        comment: '密码'
+        comment: '密码',
+        select: false
     })
     password:string;
 
@@ -45,28 +49,28 @@ export class User{
     @Column({
         type: 'int',
         default: 0,
-        comment: '表示删除',
-        select: false
-    })
-    deleteMark: number;
-
-    @Column({
-        type: 'int',
-        default: 0,
         comment: '排序'
     })
     sortCode: number;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
-    creatorTime: Timestamp;
+    creatorTime: Date;
 
-    @Exclude()
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
-    lastModifyTime: Timestamp;
+    lastModifyTime: Date;
+
+    @DeleteDateColumn({ name: 'deleted_at' })
+    deletedAt: Date;
 
     @ManyToMany(() => Role, { cascade: true })
     @JoinTable({
         name: 'user_role_relation'
     })
     roles: Role[];
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

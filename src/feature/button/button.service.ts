@@ -22,7 +22,8 @@ export class ButtonService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    await this.buttonRepository.save(createButtonDto)
+    const entity = this.buttonRepository.create(createButtonDto)
+    await this.buttonRepository.save(entity)
     return null
   }
 
@@ -38,7 +39,7 @@ export class ButtonService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return await this.buttonRepository.findOne({
       where: {
         id
@@ -46,7 +47,7 @@ export class ButtonService {
     })
   }
 
-  async update(id: number, updateButtonDto: UpdateButtonDto) {
+  async update(id: string, updateButtonDto: UpdateButtonDto) {
     const button = await this.buttonRepository.findOne({
       where: {
         id
@@ -68,13 +69,13 @@ export class ButtonService {
     return null
   }
 
-  async remove(id: number) {
-    const result = await this.buttonRepository
+  async remove(id: string) {
+    await this.buttonRepository
     .createQueryBuilder()
     .delete()
     .where('id = :id', {id})
     .execute()
     
-    if (result.affected === 1) return null
+    return null
   }
 }

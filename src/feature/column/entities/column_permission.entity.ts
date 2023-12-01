@@ -1,18 +1,24 @@
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   ManyToOne,
   ManyToMany,
-  JoinTable
+  JoinTable,
+  BeforeInsert
 } from 'typeorm';
 import { Menu } from '../../menu/entities/menu.entity';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Column_permission {
-  @PrimaryGeneratedColumn({ comment: '自然主键' })
-  id: number;
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     length: 50,
@@ -57,4 +63,10 @@ export class Column_permission {
     name: 'role_column_relation'
   })
   roles: Role[];
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

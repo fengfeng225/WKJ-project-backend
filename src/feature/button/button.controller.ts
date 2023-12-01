@@ -24,19 +24,19 @@ export class ButtonController {
 
   @ApiOperation({summary:"获取按钮信息"})
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.buttonService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.buttonService.findOne(id);
   }
 
   @ApiOperation({summary:"更新按钮"})
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateButtonDto: UpdateButtonDto) {
-    return this.buttonService.update(+id, updateButtonDto);
+  update(@Param('id') id: string, @Body() updateButtonDto: UpdateButtonDto) {
+    return this.buttonService.update(id, updateButtonDto);
   }
 
   @ApiOperation({summary:"删除按钮"})
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.buttonService.remove(+id);
+  remove(@Param('id') id: string) {
+    return this.buttonService.remove(id);
   }
 }

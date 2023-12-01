@@ -4,8 +4,10 @@ import {
   ManyToOne,
   OneToMany,
   JoinTable,
-  PrimaryGeneratedColumn,
-  ManyToMany
+  PrimaryColumn,
+  ManyToMany,
+  BeforeInsert,
+  PrimaryGeneratedColumn
 } from 'typeorm';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
 import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
@@ -13,8 +15,13 @@ import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Menu {
-  @PrimaryGeneratedColumn('uuid', { comment: '自然主键' })
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
   id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     type: 'int',
@@ -74,7 +81,7 @@ export class Menu {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
-  @Column({ nullable: true, comment: '父级的ID' })
+  @Column({ comment: '父级的ID', nullable: true })
   parentId: string;
 
   @ManyToOne(() => Menu, menu => menu.children)
@@ -94,4 +101,10 @@ export class Menu {
     name: 'role_menu_relation'
   })
   roles: Role[];
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

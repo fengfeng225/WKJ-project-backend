@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Request, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
+import { Controller, Post, Body, Get, Request } from '@nestjs/common';
 import { AuthService } from './auth.service'
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginUserDTO } from 'src/core/auth/dto/login-user.dto';
@@ -23,7 +23,6 @@ export class AuthController {
 
   // 查询个人信息
   @ApiOperation({summary:"获取用户信息"})
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get('info')
   getProfile(@Request() req) {
     return this.authService.getProfile(req.user.userId, req.user.account);

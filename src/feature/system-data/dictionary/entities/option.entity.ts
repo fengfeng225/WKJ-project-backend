@@ -2,14 +2,20 @@ import {
   Column,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn
+  PrimaryColumn,
+  BeforeInsert
 } from 'typeorm';
 import { Dictionary } from './dictionary.entity';
 
 @Entity()
 export class SelectOption {
-  @PrimaryGeneratedColumn({comment: '自然主键'})
-  id: number;
+  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  id: string;
+
+  @BeforeInsert()
+  generateId() {
+    this.id = generateUniqueId();
+  }
 
   @Column({
     length: 50,
@@ -40,5 +46,11 @@ export class SelectOption {
   dictionary: Dictionary;
 
   @Column({comment: '所属字段ID'})
-  dictionaryId: number;
+  dictionaryId: string;
+}
+
+function generateUniqueId(): string {
+  const timestamp = Date.now().toString();
+  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+  return timestamp + randomDigits;
 }

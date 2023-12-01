@@ -6,7 +6,6 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { FindRoleAuthorizeDto } from './dto/find-roleAuthorize.dto';
 import { UpdateRoleAuthorizeDto } from './dto/update-roleAuthorize.dto';
 import { Role } from './entities/role.entity';
-import { User } from '../user/entities/user.entity';
 import { Menu } from '../menu/entities/menu.entity';
 import { Button_permission } from '../button/entities/button_permission.entity';
 import { Column_permission } from '../column/entities/column_permission.entity';
@@ -22,7 +21,7 @@ export class RoleService {
     private readonly buttonRepository:Repository<Button_permission>,
     @InjectRepository(Column_permission)
     private readonly columnRepository:Repository<Column_permission>,
-    private dataSource: DataSource
+    private readonly dataSource: DataSource
   ){}
 
   async create(createRoleDto: CreateRoleDto) {
@@ -32,10 +31,10 @@ export class RoleService {
         { entityCode: createRoleDto.entityCode }
       ]
     })
-
+    
     if (isExist) throw new ConflictException('名称或编码重复')
-
-    await this.roleRepository.save(createRoleDto)
+    const entity = this.roleRepository.create(createRoleDto)
+    await this.roleRepository.save(entity)
     return null
   }
 
@@ -51,7 +50,7 @@ export class RoleService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return await this.roleRepository.findOne({
       where: {
         id
@@ -59,7 +58,7 @@ export class RoleService {
     })
   }
 
-  async update(id: number, updateRoleDto: UpdateRoleDto) {
+  async update(id: string, updateRoleDto: UpdateRoleDto) {
     const role = await this.roleRepository.findOne({
       where: {
         id
@@ -81,7 +80,7 @@ export class RoleService {
     return null
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     // 查找要删除的 Role 对象
     const role = await this.roleRepository.findOne({
       where: {
@@ -98,8 +97,8 @@ export class RoleService {
   }
 
   // 权限
-  async findAllAuthorize(roleId: number, findRoleAuthorizeDto: FindRoleAuthorizeDto) {
-    let list: Menu[], ids: Menu[] | Button_permission[] | Column_permission[], all: Menu[]
+  async findAllAuthorize(roleId: string, findRoleAuthorizeDto: FindRoleAuthorizeDto) {
+    let list: Menu[], ids: Menu[] | Button_permission[] | Column_permission[], all
     const { type, menuIds } = findRoleAuthorizeDto
     const menuIdsToArray = menuIds.split(',')
 
@@ -124,11 +123,17 @@ export class RoleService {
         .getMany()
         break;
       case 'button':
-        list = await this.menuRepository
+        const menusInButtonPage = await this.menuRepository
         .createQueryBuilder('menu')
         .where('menu.id in (:...menuIdsToArray)', {menuIdsToArray})
-        .leftJoinAndSelect('menu.buttons', 'buttons')
         .getMany()
+        const buttons = await this.buttonRepository
+        .createQueryBuilder('button')
+        .where('button.menuId in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
+
+        const menuButtonTree = this.mergeButtonColumnAndMenu(menusInButtonPage, buttons)
+        list = this.buildMenuTree(menuButtonTree)
 
         ids = await this.buttonRepository
         .createQueryBuilder('button')
@@ -138,19 +143,31 @@ export class RoleService {
         .andWhere('button.menuId in (:...menuIdsToArray)', {menuIdsToArray})
         .getMany()
 
-        all = await this.menuRepository
-        .createQueryBuilder('menu')
-        .select('menu.id')
-        .leftJoin('menu.buttons', 'buttons')
-        .addSelect('buttons.id')
-        .leftJoinAndSelect('menu.children', 'children')
-        .addSelect('children.id')
-        .where('menu.id IN (:...menuIdsToArray)', { menuIdsToArray })
-        .andWhere('children.id IN (:...menuIdsToArray)', { menuIdsToArray })
-        .getMany()
+        all = menusInButtonPage.map(menu => {return {id: menu.id}}).concat(buttons.map(button => {return {id: button.id}}))
+        
         break;
       case 'column':
+        const menusInColumnPage = await this.menuRepository
+        .createQueryBuilder('menu')
+        .where('menu.id in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
+        const columns = await this.columnRepository
+        .createQueryBuilder('column')
+        .where('column.menuId in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
 
+        const menuColumnTree = this.mergeButtonColumnAndMenu(menusInColumnPage, columns)
+        list = this.buildMenuTree(menuColumnTree)
+
+        ids = await this.columnRepository
+        .createQueryBuilder('column')
+        .select('column.id')
+        .leftJoin('role_column_relation', 'rcr', 'rcr.columnPermissionId = column.id')
+        .where('rcr.roleId = :roleId', {roleId})
+        .andWhere('column.menuId in (:...menuIdsToArray)', {menuIdsToArray})
+        .getMany()
+
+        all = menusInColumnPage.map(menu => {return {id: menu.id}}).concat(columns.map(column => {return {id: column.id}}))
         break;
       default:
         break;
@@ -163,7 +180,37 @@ export class RoleService {
     }
   }
 
-  async updateAuthorize(id: number, updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
+  async updateAuthorize(id: string, updateRoleAuthorizeDto: UpdateRoleAuthorizeDto) {
+    
+  }
 
+  private mergeButtonColumnAndMenu(menus, children: Button_permission[] | Column_permission[]): Menu[] {
+    const cloneMenus = JSON.parse(JSON.stringify(menus))
+    for (const child of children) {
+      const actionMenu = cloneMenus.find(menu => menu.id === child.menuId);
+      (actionMenu.children ??= []).push(child)
+    }
+    return cloneMenus
+  }
+
+  private buildMenuTree(flatMenus: Menu[]): Menu[] {
+    const menuMap = new Map<string, Menu>();
+    const result: Menu[] = [];
+
+    for (const menu of flatMenus) {
+      menuMap.set(menu.id, menu);
+    }
+
+    for (const menu of flatMenus) {
+      if (menu.parentId && menuMap.has(menu.parentId)) {
+        const parent = menuMap.get(menu.parentId);
+        if (!parent.children) parent.children = [];
+        parent.children.push(menu);
+      } else {
+        result.push(menu);
+      }
+    }
+
+    return result;
   }
 }

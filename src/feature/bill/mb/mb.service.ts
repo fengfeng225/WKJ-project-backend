@@ -31,8 +31,7 @@ export class MbService {
     const isExist = await this.shortRepository.findOne({
       where: {
         code: createMbDto.code,
-        classId: createMbDto.classId,
-        deleteMark: 0
+        classId: createMbDto.classId
       }
     })
 
@@ -40,7 +39,8 @@ export class MbService {
     
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(MbShort, createMbDto)
+      const entity = this.shortRepository.create(createMbDto)
+      await transactionalEntityManager.save(entity)
       const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
@@ -55,7 +55,7 @@ export class MbService {
     currentPage = 1,
     queryJson
   }): Promise<{ list: MbShort[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
-    const query = this.shortRepository.createQueryBuilder('mbShort').where('deleteMark = 0');
+    const query = this.shortRepository.createQueryBuilder('mbShort');
     
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
@@ -82,17 +82,13 @@ export class MbService {
   }
 
   async findAllShortBill() {
-    const list = await this.shortRepository.find({
-      where: {
-        deleteMark: 0
-      }
-    })
+    const list = await this.shortRepository.find()
     return {
       list
     }
   }
 
-  async findOneShortBill(id: number) {
+  async findOneShortBill(id: string) {
     return await this.shortRepository.findOne({
       where: {
         id
@@ -100,7 +96,7 @@ export class MbService {
     })
   }
 
-  async updateShortBill(id: number, updateMbDto: UpdateMbDto) {
+  async updateShortBill(id: string, updateMbDto: UpdateMbDto) {
     // 编号长度小于3，用0补齐
     if (updateMbDto.code.length < 3) updateMbDto.code = this.leftFillZero(updateMbDto.code, 3)
     
@@ -116,7 +112,6 @@ export class MbService {
       where: {
         code: updateMbDto.code,
         classId: updateMbDto.classId,
-        deleteMark: 0,
         id: Not(id)
       }
     })
@@ -142,7 +137,7 @@ export class MbService {
     return null
   }
 
-  async removeShortBill(shortId: number) {
+  async removeShortBill(shortId: string) {
     const creatorTime = new Date()
     const shortBill = await this.shortRepository.findOne({
       where: {
@@ -151,7 +146,7 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.update(MbShort, { id: shortId }, {deleteMark: 1})
+      await transactionalEntityManager.softRemove(shortBill)
       const { id, ...basicInfo } = shortBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
@@ -169,8 +164,7 @@ export class MbService {
     const isExist = await this.longRepository.findOne({
       where: {
         code: createMbDto.code,
-        classId: createMbDto.classId,
-        deleteMark: 0
+        classId: createMbDto.classId
       }
     })
 
@@ -178,7 +172,8 @@ export class MbService {
 
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(MbLong, createMbDto)
+      const entity = this.longRepository.create(createMbDto)
+      await transactionalEntityManager.save(entity)
       const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
@@ -193,7 +188,7 @@ export class MbService {
     currentPage = 1,
     queryJson
   }): Promise<{ list: MbLong[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
-    const query = this.longRepository.createQueryBuilder('mbLong').where('deleteMark = 0');
+    const query = this.longRepository.createQueryBuilder('mbLong');
     
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
@@ -220,17 +215,13 @@ export class MbService {
   }
 
   async findAllLongBill() {
-    const list = await this.longRepository.find({
-      where: {
-        deleteMark: 0
-      }
-    })
+    const list = await this.longRepository.find()
     return {
       list
     }
   }
 
-  async findOneLongBill(id: number) {
+  async findOneLongBill(id: string) {
     return await this.longRepository.findOne({
       where: {
         id
@@ -238,7 +229,7 @@ export class MbService {
     })
   }
 
-  async updateLongBill(id: number, updateMbDto: UpdateMbDto) {
+  async updateLongBill(id: string, updateMbDto: UpdateMbDto) {
     // 编号长度小于3，用0补齐
     if (updateMbDto.code.length < 3) updateMbDto.code = this.leftFillZero(updateMbDto.code, 3)
     
@@ -254,7 +245,6 @@ export class MbService {
       where: {
         code: updateMbDto.code,
         classId: updateMbDto.classId,
-        deleteMark: 0,
         id: Not(id)
       }
     })
@@ -280,7 +270,7 @@ export class MbService {
     return null
   }
 
-  async removeLongBill(longId: number) {
+  async removeLongBill(longId: string) {
     const creatorTime = new Date()
     const longBill = await this.longRepository.findOne({
       where: {
@@ -289,7 +279,7 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.update(MbLong, { id: longId }, {deleteMark: 1})
+      await transactionalEntityManager.softRemove(longBill)
       const { id, ...basicInfo } = longBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
@@ -339,7 +329,8 @@ export class MbService {
 
   // 添加拆装明细
   async addDisassembly(createDisassemblyDto: CreateDisassemblyDto, manager) {
-    await manager.save(MbDisassembly, createDisassemblyDto)
+    const entity = this.disassemblyRepository.create(createDisassemblyDto)
+    await manager.save(entity)
   }
 
   // 左边补零

@@ -11,7 +11,7 @@ export class AuthService {
 
   async validateUser(account:string,password:string):Promise<any>{
     const user = await this.userService.findOneByAccount(account);
-
+    
     if(user && user.password === password){
         const {password,...result} = user;
         return result;
@@ -34,7 +34,7 @@ export class AuthService {
   }
 
   // 获取用户信息及权限
-  async getProfile(userId: number, account: string) {
+  async getProfile(userId: string, account: string) {
     const userInfo = await this.userService.findOne(userId);
 
     const { menuList = [], permissionList = [] } = await this.userService.getPermissionListByUserId(userId, account)

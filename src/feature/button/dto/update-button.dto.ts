@@ -3,12 +3,12 @@ import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 
 export class UpdateButtonDto {
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"id"
   })
   @IsNotEmpty()
-  @IsNumber()
-  id: number;
+  @IsString()
+  id: string;
 
   @ApiProperty({
     example:"string",

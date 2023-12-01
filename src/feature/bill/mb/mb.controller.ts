@@ -47,20 +47,20 @@ export class MbController {
 
   @ApiOperation({summary:"获取短期盲板信息"})
   @Get('shortBill/:id')
-  findOneShortBill(@Param('id') id: number) {
-    return this.mbService.findOneShortBill(+id);
+  findOneShortBill(@Param('id') id: string) {
+    return this.mbService.findOneShortBill(id);
   }
 
   @ApiOperation({summary:"更新短期盲板"})
   @Put('shortBill/:id')
-  updateShortBill(@Param('id') id: number, @Body() updateMbDto: UpdateMbDto) {
-    return this.mbService.updateShortBill(+id, updateMbDto);
+  updateShortBill(@Param('id') id: string, @Body() updateMbDto: UpdateMbDto) {
+    return this.mbService.updateShortBill(id, updateMbDto);
   }
 
   @ApiOperation({summary:"删除短期盲板"})
   @Delete('shortBill/:id')
-  removeShortBill(@Param('id') id: number) {
-    return this.mbService.removeShortBill(+id);
+  removeShortBill(@Param('id') id: string) {
+    return this.mbService.removeShortBill(id);
   }
 
 
@@ -90,20 +90,20 @@ export class MbController {
 
   @ApiOperation({summary:"获取长期盲板信息"})
   @Get('longBill/:id')
-  findOneLongBill(@Param('id') id: number) {
-    return this.mbService.findOneLongBill(+id);
+  findOneLongBill(@Param('id') id: string) {
+    return this.mbService.findOneLongBill(id);
   }
 
   @ApiOperation({summary:"更新长期盲板"})
   @Put('longBill/:id')
-  updateLongBill(@Param('id') id: number, @Body() updateMbDto: UpdateMbDto) {
-    return this.mbService.updateLongBill(+id, updateMbDto);
+  updateLongBill(@Param('id') id: string, @Body() updateMbDto: UpdateMbDto) {
+    return this.mbService.updateLongBill(id, updateMbDto);
   }
 
   @ApiOperation({summary:"删除长期盲板"})
   @Delete('longBill/:id')
-  removeLongBill(@Param('id') id: number) {
-    return this.mbService.removeLongBill(+id);
+  removeLongBill(@Param('id') id: string) {
+    return this.mbService.removeLongBill(id);
   }
 
 

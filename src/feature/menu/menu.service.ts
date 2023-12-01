@@ -48,7 +48,8 @@ export class MenuService {
 
     if (createMenuDto.parentId === '-1') createMenuDto.parentId = null
     
-    await this.menuRepository.save(createMenuDto)
+    const entity = this.menuRepository.create(createMenuDto)
+    await this.menuRepository.save(entity)
 
     return null
   }

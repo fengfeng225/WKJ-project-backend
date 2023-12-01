@@ -23,11 +23,12 @@ export class UserService {
    * @param account 登录账号
    */
   async findOneByAccount(account: string): Promise<User> {
-    const user = await this.userRepository.findOne({
-        where:{
-            account
-        }
-    });
+    const user = await this.userRepository
+    .createQueryBuilder('user')
+    .where('account = :account', {account})
+    .addSelect('user.password')
+    .getOne()
+
     return user
   }
 
@@ -36,7 +37,7 @@ export class UserService {
    *
    * @param id 用户id
    */
-  async findOne(id:number):Promise<User|undefined>{
+  async findOne(id:string):Promise<User|undefined>{
 
     const user = await this.userRepository.findOne({
         where:{
@@ -50,7 +51,7 @@ export class UserService {
   }
 
   // 获取用户信息及权限
-  async getPermissionListByUserId(userId: number, account: string) {
+  async getPermissionListByUserId(userId: string, account: string) {
     let menus, permissionList
 
     if (account === 'admin') {
@@ -102,14 +103,14 @@ export class UserService {
   }
 
   // 更新密码
-  async updatePassword(userId: number, updateUserDto) {
+  async updatePassword(userId: string, updateUserDto) {
     if (updateUserDto.password !== updateUserDto.password2) throw new ConflictException('密码输入不一致，请重试');
 
     const result = await this.userRepository
     .createQueryBuilder()
     .update()
     .set({password: updateUserDto.password })
-    .where('id = :id', {id: userId})
+    .where('id = :userId', {userId})
     .execute()
     
     if (result.affected === 1) return null

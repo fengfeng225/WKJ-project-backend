@@ -22,12 +22,12 @@ export class ColumnService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    await this.columnRepository.save(createColumnDto)
+    const entity = this.columnRepository.create(createColumnDto)
+    await this.columnRepository.save(entity)
     return null
   }
 
-  async batchCreate(columnData) {
-    const menuId = columnData.menuId
+  async batchCreate(menuId: string, columnData) {
     const columns = columnData.columnJson
     columns.forEach(column => column.menuId = menuId)
 
@@ -52,7 +52,7 @@ export class ColumnService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return await this.columnRepository.findOne({
       where: {
         id
@@ -60,7 +60,7 @@ export class ColumnService {
     })
   }
 
-  async update(id: number, updateColumnDto: UpdateColumnDto) {
+  async update(id: string, updateColumnDto: UpdateColumnDto) {
     const column = await this.columnRepository.findOne({
       where: {
         id
@@ -82,13 +82,13 @@ export class ColumnService {
     return null
   }
 
-  async remove(id: number) {
-    const result = await this.columnRepository
+  async remove(id: string) {
+    await this.columnRepository
     .createQueryBuilder()
     .delete()
     .where('id = :id', {id})
     .execute()
     
-    if (result.affected === 1) return null
+    return null
   }
 }
