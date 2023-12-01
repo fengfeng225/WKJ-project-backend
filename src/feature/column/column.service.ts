@@ -29,12 +29,15 @@ export class ColumnService {
 
   async batchCreate(menuId: string, columnData) {
     const columns = columnData.columnJson
-    columns.forEach(column => column.menuId = menuId)
+    const entities = columns.map(column => {
+      column.menuId = menuId
+      return this.columnRepository.create(column)
+    })
 
     await this.columnRepository
     .createQueryBuilder()
     .insert()
-    .values(columns)
+    .values(entities)
     .execute()
 
     return null

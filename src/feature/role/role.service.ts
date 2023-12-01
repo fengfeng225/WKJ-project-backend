@@ -91,7 +91,7 @@ export class RoleService {
     // 如果找不到该 Role，抛出异常
     if (!role) throw new NotFoundException('没有找到角色');
 
-    await this.roleRepository.softRemove(role)
+    await this.roleRepository.remove(role)
 
     return null
   }

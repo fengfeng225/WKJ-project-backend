@@ -58,7 +58,7 @@ export class Button_permission {
   @Column({comment: '所属菜单ID'})
   menuId: string
 
-  @ManyToMany(() => Role, (role) => role.buttons)
+  @ManyToMany(() => Role, {cascade: true})
   @JoinTable({
     name: 'role_button_relation'
   })

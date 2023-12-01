@@ -60,6 +60,7 @@ export class UserService {
       .leftJoinAndSelect('menu.children', 'children')
       .where('menu.enabledMark = 1')
       .andWhere('menu.parentId IS NULL')
+      .orderBy('menu.sortCode')
       .getMany();
       
 
@@ -79,6 +80,7 @@ export class UserService {
       .leftJoinAndSelect('menu.children', 'children')
       .andWhere('menu.parentId IS NULL')
       .andWhere('menu.enabledMark = 1')
+      .orderBy('menu.sortCode')
       .getMany();
 
       permissionList = await this.menuRepository

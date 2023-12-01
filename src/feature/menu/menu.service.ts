@@ -130,10 +130,10 @@ export class MenuService {
       },
       relations: {
         buttons: true,
-        columns: true,
-        roles: true
+        columns: true
       }
     })
+    
 
     // 如果找不到该 Menu，抛出异常
     if (!menu) throw new NotFoundException('没有找到菜单');
@@ -145,7 +145,7 @@ export class MenuService {
 
       // 删除关联的 Column 对象
       await this.deleteAssociatedColumns(menu.columns, transactionalEntityManager);
-
+      
       // 删除 Menu 对象
       await transactionalEntityManager.remove(menu);
     })
@@ -154,7 +154,7 @@ export class MenuService {
   }
 
   // 删除关联的button
-  private async deleteAssociatedButtons(buttons: Button_permission[], manager): Promise<void> {
+  private async deleteAssociatedButtons(buttons: Button_permission[], manager): Promise<void> {    
     for (const button of buttons) {
       await manager.remove(button);
     }

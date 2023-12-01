@@ -291,7 +291,10 @@ export class MbService {
 
   // class
   async findAllClass(): Promise<{list: MbClass[]}> {
-    const list =  await this.classRepository.find()
+    const list =  await this.classRepository
+    .createQueryBuilder('class')
+    .orderBy('class.label')
+    .getMany()
     return {
       list
     }

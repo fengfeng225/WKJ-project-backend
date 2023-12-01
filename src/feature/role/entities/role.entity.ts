@@ -4,6 +4,7 @@ import {
   ManyToMany,
   PrimaryColumn,
   DeleteDateColumn,
+  JoinTable,
   BeforeInsert
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
@@ -53,19 +54,28 @@ export class Role {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
-  deletedAt: Date;
-
-  @ManyToMany(() => User, (user) => user.roles)
+  @ManyToMany(() => User, {cascade: true})
+  @JoinTable({
+      name: 'user_role_relation'
+  })
   users: User[];
 
   @ManyToMany(() => Menu, {cascade: true})
+  @JoinTable({
+    name: 'role_menu_relation'
+  })
   menus: Menu[];
 
   @ManyToMany(() => Button_permission, {cascade: true})
+  @JoinTable({
+    name: 'role_button_relation'
+  })
   buttons: Button_permission[];
 
   @ManyToMany(() => Column_permission, {cascade: true})
+  @JoinTable({
+    name: 'role_column_relation'
+  })
   columns: Column_permission[];
 }
 
