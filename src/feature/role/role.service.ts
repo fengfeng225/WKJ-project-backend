@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, DataSource } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { FindRoleAuthorizeDto } from './dto/find-roleAuthorize.dto';
@@ -20,8 +20,7 @@ export class RoleService {
     @InjectRepository(Button_permission)
     private readonly buttonRepository:Repository<Button_permission>,
     @InjectRepository(Column_permission)
-    private readonly columnRepository:Repository<Column_permission>,
-    private readonly dataSource: DataSource
+    private readonly columnRepository:Repository<Column_permission>
   ){}
 
   async create(createRoleDto: CreateRoleDto) {
@@ -51,11 +50,13 @@ export class RoleService {
   }
 
   async findOne(id: string) {
-    return await this.roleRepository.findOne({
+    const role = await this.roleRepository.findOne({
       where: {
         id
       }
     })
+    if (!role) throw new NotFoundException('没有找到角色')
+    return role
   }
 
   async update(id: string, updateRoleDto: UpdateRoleDto) {
@@ -202,7 +203,7 @@ export class RoleService {
     const newColumns = await this.columnRepository
     .createQueryBuilder('column')
     .where('column.id in (:...columns)', {columns})
-    .getMany()    
+    .getMany()
 
     role.menus = newMenus
     role.buttons = newButtons

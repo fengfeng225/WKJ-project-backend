@@ -1,11 +1,16 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { classToPlain } from 'class-transformer';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
 import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
+import { CreateUserDto } from './dto/create-user-dto';
+import { UpdateUserDto } from './dto/update-user-dto';
 
 @Injectable()
 export class UserService {
@@ -15,6 +20,8 @@ export class UserService {
     private readonly userRepository:Repository<User>,
     @InjectRepository(Menu)
     private readonly menuRepository:Repository<Menu>,
+    @InjectRepository(Role)
+    private readonly roleRepository:Repository<Role>,
   ){}
 
   /**
@@ -32,13 +39,8 @@ export class UserService {
     return user
   }
 
-  /**
-   * 通过id查询用户
-   *
-   * @param id 用户id
-   */
-  async findOne(id:string):Promise<User|undefined>{
-
+  // 用于用户初始登录后，获取用户信息
+  async getUserInfoForInit(id:string):Promise<User|undefined>{
     const user = await this.userRepository.findOne({
         where:{
             id
@@ -49,6 +51,105 @@ export class UserService {
 
     return user;
   }
+
+  async findAll({
+    keyword,
+    pageSize = 20,
+    currentPage = 1
+  }): Promise<{ list: User[], pagination: { total: number, pageSize: number, pageIndex: number } }>  {
+    const query = this.userRepository.createQueryBuilder('user').orderBy("user.sortCode");
+
+    if (keyword) query.where(`userName LIKE :keyword`, { keyword: `%${keyword}%` })
+
+    const total = await query.getCount();
+
+    query.skip((currentPage - 1) * pageSize).take(pageSize);
+
+    const list = await query.getMany()
+    
+    const pagination = {
+      pageIndex: +currentPage,
+      pageSize: +pageSize,
+      total
+    }
+
+    return { list, pagination }
+  }
+
+  async findOne(id: string) {
+    const user = await this.userRepository.findOne({
+      where:{
+          id
+      },
+      relations: {
+        roles: true
+      }
+    });
+
+    if (!user) throw new UnauthorizedException('用户不存在');
+
+    const roleId = user.roles.map(role => role.id)
+    const { roles, ...userInfo } = classToPlain(user)
+    userInfo.roleId = roleId
+    return userInfo;
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    const isExist = await this.userRepository.findOne({
+      where: [
+        { account: createUserDto.account },
+        { userName: createUserDto.userName }
+      ]
+    })
+    if (isExist) throw new ConflictException('账户或名称重复')
+
+    const roles = await this.roleRepository
+    .createQueryBuilder('role')
+    .where('role.id in (:...roleId)', {roleId: createUserDto.roleId})
+    .getMany()
+
+    const entity = this.userRepository.create(createUserDto)
+    entity.roles = roles
+    await this.userRepository.save(entity)
+    return null
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id
+      }
+    })
+
+    if (!user) throw new NotFoundException('没有找到用户') 
+  }
+
+  async remove(id: string) {
+
+  }
+  
+
+  // 更新密码
+  async updatePassword(userId: string, updateUserPasswordDto: UpdateUserPasswordDto) {
+    const user = await this.userRepository
+    .createQueryBuilder('user')
+    .addSelect('user.password')
+    .where('user.id = :userId', {userId})
+    .getOne()
+
+    if (updateUserPasswordDto.oldPassword !== user.password) throw new ConflictException('密码输入错误，请重试');
+
+    user.password = updateUserPasswordDto.password
+    await this.userRepository.save(user)
+    
+    return null
+  }
+
+  // 重置密码
+  async resetPassword(userId: string, resetUserPasswordDto: ResetUserPasswordDto) {
+
+  }
+
 
   // 获取用户信息及权限
   async getPermissionListByUserId(userId: string, account: string) {
@@ -104,35 +205,21 @@ export class UserService {
     
   }
 
-  // 更新密码
-  async updatePassword(userId: string, updateUserDto) {
-    if (updateUserDto.password !== updateUserDto.password2) throw new ConflictException('密码输入不一致，请重试');
-
-    const result = await this.userRepository
-    .createQueryBuilder()
-    .update()
-    .set({password: updateUserDto.password })
-    .where('id = :userId', {userId})
-    .execute()
-    
-    if (result.affected === 1) return null
-  }
-
   // 添加测试数据
   async initData() {
 
     // 用户
     const user0 = new User()
     user0.account = 'admin'
-    user0.username = '管理员'
+    user0.userName = '管理员'
 
     const user1 = new User()
     user1.account = 'by_one_class'
-    user1.username = '白油一班'
+    user1.userName = '白油一班'
 
     const user2 = new User()
     user2.account = 'by_two_class'
-    user2.username = '白油二班'
+    user2.userName = '白油二班'
 
     // 角色
     const role1 = new Role()

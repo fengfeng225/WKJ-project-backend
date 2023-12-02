@@ -89,11 +89,15 @@ export class MbService {
   }
 
   async findOneShortBill(id: string) {
-    return await this.shortRepository.findOne({
+    const shortBill = await this.shortRepository.findOne({
       where: {
         id
       }
     })
+
+    if (!shortBill) throw new NotFoundException('没有找到盲板')
+
+    return shortBill
   }
 
   async updateShortBill(id: string, updateMbDto: UpdateMbDto) {
@@ -222,11 +226,15 @@ export class MbService {
   }
 
   async findOneLongBill(id: string) {
-    return await this.longRepository.findOne({
+    const longBill = await this.longRepository.findOne({
       where: {
         id
       }
     })
+
+    if(!longBill) throw new NotFoundException('没有找到盲板')
+
+    return longBill
   }
 
   async updateLongBill(id: string, updateMbDto: UpdateMbDto) {

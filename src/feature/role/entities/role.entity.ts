@@ -3,10 +3,10 @@ import {
   Entity,
   ManyToMany,
   PrimaryColumn,
-  DeleteDateColumn,
   JoinTable,
   BeforeInsert
 } from 'typeorm';
+import util from 'src/utils/util';
 import { User } from '../../user/entities/user.entity';
 import { Menu } from '../../menu/entities/menu.entity';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
@@ -14,12 +14,12 @@ import { Column_permission } from 'src/feature/column/entities/column_permission
 
 @Entity()
 export class Role {
-  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
   id: string;
 
   @BeforeInsert()
   generateId() {
-    this.id = generateUniqueId();
+    this.id = util.generateUniqueId();
   }
 
   @Column({
@@ -77,10 +77,4 @@ export class Role {
     name: 'role_column_relation'
   })
   columns: Column_permission[];
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }

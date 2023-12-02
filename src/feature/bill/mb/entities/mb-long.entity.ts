@@ -6,16 +6,17 @@ import {
   BeforeInsert,
   DeleteDateColumn
 } from 'typeorm';
+import util from 'src/utils/util';
 import { MbClass } from './mb-class.entity';
 
 @Entity()
 export class MbLong {
-  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
   id: string;
 
   @BeforeInsert()
   generateId() {
-    this.id = generateUniqueId();
+    this.id = util.generateUniqueId();
   }
 
   @Column({
@@ -87,7 +88,7 @@ export class MbLong {
   })
   material: string;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
+  @DeleteDateColumn({ name: 'deleted_at', select: false })
   deletedAt: Date;
 
   @Column({
@@ -113,10 +114,4 @@ export class MbLong {
 
   @ManyToOne(() => MbClass, {cascade: true})
   class: MbClass;
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }

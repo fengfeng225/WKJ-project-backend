@@ -40,11 +40,13 @@ export class ButtonService {
   }
 
   async findOne(id: string) {
-    return await this.buttonRepository.findOne({
+    const button = await this.buttonRepository.findOne({
       where: {
         id
       }
     })
+    if(!button) throw new NotFoundException('没有找到按钮')
+    return button
   }
 
   async update(id: string, updateButtonDto: UpdateButtonDto) {
@@ -54,7 +56,7 @@ export class ButtonService {
       }
     })
 
-    if (!button) throw new NotFoundException('无效的按钮')
+    if (!button) throw new NotFoundException('没有找到按钮')
 
     const isExist = await this.buttonRepository.findOne({
       where: [

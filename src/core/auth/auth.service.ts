@@ -35,7 +35,7 @@ export class AuthService {
 
   // 获取用户信息及权限
   async getProfile(userId: string, account: string) {
-    const userInfo = await this.userService.findOne(userId);
+    const userInfo = await this.userService.getUserInfoForInit(userId);
 
     const { menuList = [], permissionList = [] } = await this.userService.getPermissionListByUserId(userId, account)
     

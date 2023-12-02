@@ -7,16 +7,17 @@ import {
     BeforeInsert,
     DeleteDateColumn
 } from "typeorm";
+import util from 'src/utils/util';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class User{
-    @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+    @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
     id: string;
 
     @BeforeInsert()
     generateId() {
-      this.id = generateUniqueId();
+      this.id = util.generateUniqueId();
     }
 
     @Column({
@@ -37,7 +38,7 @@ export class User{
         length: 50,
         comment: '用户名'
     })
-    username: String;
+    userName: string;
 
     @Column({
         type: 'int',
@@ -53,13 +54,20 @@ export class User{
     })
     sortCode: number;
 
+    @Column({
+      type: 'text',
+      nullable: true,
+      comment: '说明'
+    })
+    description: string;
+
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
     creatorTime: Date;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
     lastModifyTime: Date;
 
-    @DeleteDateColumn({ name: 'deleted_at' })
+    @DeleteDateColumn({ name: 'deleted_at', select: false })
     deletedAt: Date;
 
     @ManyToMany(() => Role, { cascade: true })
@@ -67,10 +75,4 @@ export class User{
         name: 'user_role_relation'
     })
     roles: Role[];
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }

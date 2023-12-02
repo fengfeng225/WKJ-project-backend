@@ -5,16 +5,17 @@ import {
   PrimaryColumn,
   BeforeInsert
 } from 'typeorm';
+import util from 'src/utils/util';
 import { SelectOption } from './option.entity';
 
 @Entity()
 export class Dictionary {
-  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
   id: string;
 
   @BeforeInsert()
   generateId() {
-    this.id = generateUniqueId();
+    this.id = util.generateUniqueId();
   }
 
   @Column({
@@ -44,10 +45,4 @@ export class Dictionary {
 
   @OneToMany(() => SelectOption, selectOption => selectOption.dictionary)
   options: SelectOption[];
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }

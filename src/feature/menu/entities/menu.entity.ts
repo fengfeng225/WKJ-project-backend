@@ -6,21 +6,21 @@ import {
   JoinTable,
   PrimaryColumn,
   ManyToMany,
-  BeforeInsert,
-  PrimaryGeneratedColumn
+  BeforeInsert
 } from 'typeorm';
+import util from 'src/utils/util';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
 import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Menu {
-  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
   id: string;
 
   @BeforeInsert()
   generateId() {
-    this.id = generateUniqueId();
+    this.id = util.generateUniqueId();
   }
 
   @Column({
@@ -101,10 +101,4 @@ export class Menu {
     name: 'role_menu_relation'
   })
   roles: Role[];
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }

@@ -42,11 +42,13 @@ export class DictionaryService {
   }
 
   async findOneDictionary(id: string) {
-    return await this.dictionaryRepository.findOne({
+    const dictionary = await this.dictionaryRepository.findOne({
       where: {
         id
       }
     })
+    if (!dictionary) throw new NotFoundException('没有找到字段')
+    return dictionary
   }
 
   async updateDictionary(id: string, updateDictionaryDto: UpdateDictionaryDto) {
@@ -151,11 +153,13 @@ export class DictionaryService {
   }
 
   async findOneOption(id: string) {
-    return await this.optionRepository.findOne({
+    const option = await this.optionRepository.findOne({
       where: {
         id
       }
     })
+    if (!option) throw new NotFoundException('没有找到选项')
+    return option
   }
 
   async updateOption(id: string, updateOptionDto: UpdateOptionDto) {

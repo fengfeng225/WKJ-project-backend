@@ -56,11 +56,13 @@ export class ColumnService {
   }
 
   async findOne(id: string) {
-    return await this.columnRepository.findOne({
+    const column = await this.columnRepository.findOne({
       where: {
         id
       }
     })
+    if (!column) throw new NotFoundException('没有找到表格列')
+    return column
   }
 
   async update(id: string, updateColumnDto: UpdateColumnDto) {

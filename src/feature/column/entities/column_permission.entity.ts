@@ -7,17 +7,18 @@ import {
   JoinTable,
   BeforeInsert
 } from 'typeorm';
+import util from 'src/utils/util';
 import { Menu } from '../../menu/entities/menu.entity';
 import { Role } from '../../role/entities/role.entity';
 
 @Entity()
 export class Column_permission {
-  @PrimaryColumn({ comment: '自然主键', length: 18, unique: true })
+  @PrimaryColumn({ comment: '自然主键', length: 20, unique: true })
   id: string;
 
   @BeforeInsert()
   generateId() {
-    this.id = generateUniqueId();
+    this.id = util.generateUniqueId();
   }
 
   @Column({
@@ -63,10 +64,4 @@ export class Column_permission {
     name: 'role_column_relation'
   })
   roles: Role[];
-}
-
-function generateUniqueId(): string {
-  const timestamp = Date.now().toString();
-  const randomDigits = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  return timestamp + randomDigits;
 }
