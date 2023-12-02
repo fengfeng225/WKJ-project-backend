@@ -11,7 +11,8 @@ export class AuthService {
 
   async validateUser(account:string,password:string):Promise<any>{
     const user = await this.userService.findOneByAccount(account);
-    
+    if (user && user.enabledMark !== 1) throw new UnauthorizedException('账号被禁用，请联系管理员');
+
     if(user && user.password === password){
         const {password,...result} = user;
         return result;
@@ -20,11 +21,12 @@ export class AuthService {
     return null
   }
 
-  // 登录接口服务层 签发jwt
+  // 登录接口服务层
   async login(loginUserDTO: any) {
     const user = await this.validateUser(loginUserDTO.account, loginUserDTO.password);
     if (!user) throw new UnauthorizedException('账号或密码错误');
 
+    // 签发jwt
     const payload = {account:user.account,userId:user.id};
     const token = this.jwtService.sign(payload)
 
