@@ -109,7 +109,7 @@ export class DictionaryService {
       where: {
         entityCode: code
       }
-    })
+    })    
 
     if (!dictionary) {
       list = []

@@ -352,10 +352,24 @@ export class UserService {
     menu13.urlAddress = 'bill/mb/groups'
     menu13.type = 2
 
+    const menu14 = new Menu()
+    menu14.fullName = '定时任务'
+    menu14.entityCode = 'scheduledTask'
+    menu14.icon = 'icon-ym icon-ym-sysQuartz'
+    menu14.type = 1
+
+    const menu15 = new Menu()
+    menu15.fullName = '检查计划'
+    menu15.entityCode = 'checkPlan'
+    menu15.icon = 'ym-custom ym-custom-calendar-check'
+    menu15.urlAddress = 'scheduledTask/checkPlan'
+    menu15.type = 2
+
     // 菜单自身绑定
     menu1.children = [menu2, menu9, menu10]
     menu3.children = [menu4, menu5, menu6]
     menu7.children = [menu8, menu11, menu12, menu13]
+    menu14.children = [menu15]
 
     // 按钮
     const button1 = new Button_permission()
@@ -385,7 +399,7 @@ export class UserService {
     menu6.buttons = [button3]
 
     // 角色绑定权限
-    role1.menus = [menu7, menu8, menu3, menu4, menu5, menu6]
+    role1.menus = [menu7, menu8, menu3, menu4, menu5, menu6, menu14, menu15]
     role2.menus = [menu3, menu4, menu5, menu6]
     role3.menus = [menu8, menu1, menu2, menu9, menu10, menu11, menu12, menu13]
 
