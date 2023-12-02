@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { classToPlain } from 'class-transformer';
+import { Repository, Not } from 'typeorm';
+import { instanceToPlain } from 'class-transformer';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
@@ -89,7 +89,7 @@ export class UserService {
     if (!user) throw new UnauthorizedException('用户不存在');
 
     const roleId = user.roles.map(role => role.id)
-    const { roles, ...userInfo } = classToPlain(user)
+    const { roles, ...userInfo } = instanceToPlain(user)
     userInfo.roleId = roleId
     return userInfo;
   }
@@ -122,10 +122,39 @@ export class UserService {
     })
 
     if (!user) throw new NotFoundException('没有找到用户') 
+
+    const isExist = await this.userRepository.findOne({
+      where: [
+        { account: updateUserDto.account, id: Not(updateUserDto.id) },
+        { userName: updateUserDto.userName, id: Not(updateUserDto.id) }
+      ]
+    })
+
+    if (isExist) throw new ConflictException('名称或编码重复')
+
+    const roles = await this.roleRepository
+    .createQueryBuilder('role')
+    .where('role.id in (:...roleId)', {roleId: updateUserDto.roleId})
+    .getMany()
+    
+    const entity = this.userRepository.create(updateUserDto)
+    entity.roles = roles
+    await this.userRepository.save(entity)
+    return null
   }
 
   async remove(id: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id
+      }
+    })
+    
+    if (!user) throw new NotFoundException('没有找到用户');
 
+    await this.userRepository.softRemove(user)
+
+    return null
   }
   
 
