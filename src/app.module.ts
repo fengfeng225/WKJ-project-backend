@@ -6,7 +6,7 @@ import { UserModule } from './feature/user/user.module';
 import { AuthModule } from './core/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
-import { ConfigModule, ConfigService  } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RoleModule } from './feature/role/role.module';
 import { MenuModule } from './feature/menu/menu.module';
 import { ButtonModule } from './feature/button/button.module';

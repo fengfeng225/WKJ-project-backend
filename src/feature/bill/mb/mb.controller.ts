@@ -12,15 +12,6 @@ import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 export class MbController {
   constructor(private readonly mbService: MbService) {}
 
-  // 初始化测试数据
-  @RequireLogin()
-  @Get('init')
-  async initClass() {
-    await this.mbService.initClass()
-    return 'done'
-  }
-
-
   // shortBill
   @ApiOperation({summary:"获取短期盲板"})
   @ApiQuery({name: 'classId', required: false})

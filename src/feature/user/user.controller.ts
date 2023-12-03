@@ -14,14 +14,6 @@ import { UpdateUserDto } from './dto/update-user-dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // 添加测试数据接口
-  @RequireLogin()
-  @Get('init')
-  async initData() {
-    await this.userService.initData();
-    return 'done';
-  }
-
   @ApiOperation({summary:"更改用户密码"})
   @Put('updatePassword')
   updatePassword(@Request() req, @Body() updateUserPasswordDto: UpdateUserPasswordDto) {
