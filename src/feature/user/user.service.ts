@@ -24,6 +24,27 @@ export class UserService {
     private readonly roleRepository:Repository<Role>,
   ){}
 
+  private buildMenuTree(flatMenus: Menu[]): Menu[] {
+    const menuMap = new Map<string, Menu>();
+    const result: Menu[] = [];
+
+    for (const menu of flatMenus) {
+      menuMap.set(menu.id, menu);
+    }
+
+    for (const menu of flatMenus) {
+      if (menu.parentId && menuMap.has(menu.parentId)) {
+        const parent = menuMap.get(menu.parentId);
+        if (!parent.children) parent.children = [];
+        parent.children.push(menu);
+      } else {
+        result.push(menu);
+      }
+    }
+
+    return result;
+  }
+  
   /**
    * 通过登录账号查询用户
    *
@@ -194,8 +215,7 @@ export class UserService {
     return null
   }
 
-
-  // 获取用户信息及权限
+  // 获取用户权限（返回给前端）
   async getPermissionListByUserId(userId: string, account: string) {
     let menus, permissionList
 
@@ -218,17 +238,16 @@ export class UserService {
       .where('menu.enabledMark = 1')
       .getMany();
     } else {
-      menus = await this.menuRepository
+      const flatMenus = await this.menuRepository
       .createQueryBuilder('menu')
       .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
       .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
       .where('urr.userId = :userId', { userId })
-      .leftJoinAndSelect('menu.children', 'children')
-      .andWhere('menu.parentId IS NULL')
       .andWhere('menu.enabledMark = 1')
       .orderBy('menu.sortCode')
-      .addOrderBy('children.sortCode')
       .getMany();
+
+      menus = this.buildMenuTree(flatMenus)
 
       permissionList = await this.menuRepository
       .createQueryBuilder('menu')
@@ -249,6 +268,31 @@ export class UserService {
       permissionList: permissionList
     }
     
+  }
+
+  // 获取用户权限（权限守卫用）
+  async getUserPermissions(userId: string) {
+    const menus = await this.menuRepository
+    .createQueryBuilder('menu')
+    .select(['menu.id', 'menu.entityCode'])
+    .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
+    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
+    .where('urr.userId = :userId', { userId })
+    .andWhere('menu.enabledMark = 1')
+    .getMany();
+
+    const buttons = await this.menuRepository
+    .createQueryBuilder('menu')
+    .select(['menu.id', 'menu.entityCode'])
+    .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
+    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
+    .leftJoin('role_button_relation', 'rbr', 'urr.roleId = rbr.roleId')
+    .leftJoinAndSelect('menu.buttons', 'button', 'rbr.buttonPermissionId = button.id')
+    .where('urr.userId = :userId', { userId })
+    .andWhere('menu.enabledMark = 1')
+    .getMany();
+
+    return { menus, buttons }
   }
 
   // 添加测试数据
