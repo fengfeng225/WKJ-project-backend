@@ -3,7 +3,8 @@ import {
   Entity,
   ManyToOne,
   PrimaryColumn,
-  BeforeInsert
+  BeforeInsert,
+  DeleteDateColumn
 } from 'typeorm';
 import util from 'src/utils/util';
 import { MbClass } from './mb-class.entity';
@@ -101,6 +102,9 @@ export class MbDisassembly {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '该记录产生时间', select: false })
   creatorTime: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', select: false })
+  deletedAt: Date;
 
   @Column({
     length: 50,

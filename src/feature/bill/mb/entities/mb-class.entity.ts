@@ -27,6 +27,13 @@ export class MbClass {
   })
   label: string;
 
+  @Column({
+    type: 'int',
+    default: 0,
+    comment: '排序'
+  })
+  sortCode: number;
+
   @DeleteDateColumn({ name: 'deleted_at', select: false })
   deletedAt: Date;
 

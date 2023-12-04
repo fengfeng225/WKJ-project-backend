@@ -13,6 +13,7 @@ import { ButtonModule } from './feature/button/button.module';
 import { ColumnModule } from './feature/column/column.module';
 import { MbModule } from './feature/bill/mb/mb.module';
 import { DictionaryModule } from './feature/system-data/dictionary/dictionary.module';
+import { HomeModule } from './feature/home/home.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -27,11 +28,11 @@ import envConfig from 'config/envConfig';
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
+        port: JSON.parse(configService.get<string>('DB_PORT')),
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        synchronize: configService.get<boolean>('DB_SYNCHRONIZE'),
+        synchronize: JSON.parse(configService.get<string>('DB_SYNCHRONIZE')),
         autoLoadEntities: true,
         dateStrings: true,
       })
@@ -43,7 +44,8 @@ import envConfig from 'config/envConfig';
     ButtonModule,
     ColumnModule,
     MbModule,
-    DictionaryModule
+    DictionaryModule,
+    HomeModule
   ],
   controllers: [AppController],
   providers: [

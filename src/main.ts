@@ -5,14 +5,15 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionFilter } from './core/filters/all-exception.filter';
 import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import envConfig from 'config/envConfig';
+import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    // logger: ['error', 'warn', 'log'],
+  });
 
   // 全局异常过滤
   app.useGlobalFilters(new AllExceptionFilter())
@@ -26,18 +27,22 @@ async function bootstrap() {
   // 全局配置添加请求前缀
   app.setGlobalPrefix('/api')
 
-  // 托管静态资源
-  app.use(history());
-  app.use(express.static(path.join(__dirname, 'public')))
-
-
   // 设置允许跨域访问
   // app.enableCors();
   
-  // 配置swagger仅在开发环境启用
+  // 获取上下文
   const appContext = await NestFactory.createApplicationContext(AppModule);
-  const swaggerEnabled = appContext.get(ConfigService).get<boolean>('SWAGGER_ENABLED');
+  
+  // 配置仅生产环境托管静态资源
+  const historyRouter = JSON.parse(appContext.get(ConfigService).get<string>('HISTORY_ROUTER'));
+  
+  if (historyRouter) {
+    app.use(history());
+    app.use(express.static(path.join(__dirname, 'public')))
+  }
 
+  // 配置swagger仅在开发环境启用
+  const swaggerEnabled = JSON.parse(appContext.get(ConfigService).get<string>('SWAGGER_ENABLED'));
   if (swaggerEnabled) {
     const options = new DocumentBuilder()
     .setTitle('防互窜管理系统')

@@ -11,6 +11,13 @@ import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger'
 @Controller('admin/mb')
 export class MbController {
   constructor(private readonly mbService: MbService) {}
+  // 初始化测试数据
+  @RequireLogin()
+  @Get('init')
+  async initClass() {
+    await this.mbService.initClass()
+    return 'done'
+  }
 
   // shortBill
   @ApiOperation({summary:"获取短期盲板"})
@@ -109,6 +116,11 @@ export class MbController {
     return this.mbService.findDisassembleDetails(findAllMbDto);
   }
 
+  @ApiOperation({summary:"删除拆装明细"})
+  @Delete('bill/disassembleDetail/:id')
+  removeDisassembleDetail(@Param('id') id: string) {
+    return this.mbService.removeDisassembleDetail(id);
+  }
 
   // class
   @ApiOperation({summary:"获取班组列表"})

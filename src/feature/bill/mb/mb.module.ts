@@ -13,5 +13,6 @@ import { MbDisassembly } from './entities/mb-disassembly.entity';
   ],
   controllers: [MbController],
   providers: [MbService],
+  exports: [TypeOrmModule]
 })
 export class MbModule {}
