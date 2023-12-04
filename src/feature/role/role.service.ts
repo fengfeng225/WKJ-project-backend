@@ -192,18 +192,20 @@ export class RoleService {
 
     if (!role) throw new NotFoundException('没有找到角色');
 
-    const newMenus = await this.menuRepository
+    const newMenus = menus.length ? await this.menuRepository
     .createQueryBuilder('menu')
     .where('menu.id in (:...menus)', {menus})
-    .getMany()
-    const newButtons = await this.buttonRepository
+    .getMany() : []
+
+    const newButtons = buttons.length ? await this.buttonRepository
     .createQueryBuilder('button')
     .where('button.id in (:...buttons)', {buttons})
-    .getMany()
-    const newColumns = await this.columnRepository
+    .getMany() : []
+    
+    const newColumns = columns.length ? await this.columnRepository
     .createQueryBuilder('column')
     .where('column.id in (:...columns)', {columns})
-    .getMany()
+    .getMany() : []
 
     role.menus = newMenus
     role.buttons = newButtons

@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { HomeService } from './home.service';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from '../../decorators/require-permission';
@@ -15,7 +15,7 @@ export class HomeController {
 
   @ApiOperation({summary:"获取各台账总数"})
   @Get('sumBills')
-  findAll() {
-    return this.homeService.findAll();
+  findAll(@Req() req) {
+    return this.homeService.findAll(req.user.userId, req.user.account);
   }
 }
