@@ -1,5 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Inject } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { CanActivate, ExecutionContext, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Require_Permission_Key } from '../../decorators/require-permission';
 import { UserService } from './user.service';
@@ -31,7 +30,7 @@ export class PermissionGuard implements CanActivate {
     const canAccessButton = false
 
     const hasPermission = canAccessMenu || canAccessButton
-    
-    return hasPermission;
+    if (!hasPermission) throw new UnauthorizedException('您没有权限访问！');
+    return true;
   }
 }
