@@ -6,6 +6,7 @@ import { AllExceptionFilter } from './core/filters/all-exception.filter';
 import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import envConfig from 'config/envConfig';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
@@ -30,19 +31,20 @@ async function bootstrap() {
   // 设置允许跨域访问
   // app.enableCors();
   
-  // 获取上下文
-  const appContext = await NestFactory.createApplicationContext(AppModule);
+  const configService = new ConfigService({
+    envFilePath: [envConfig.path],
+  });
+  
+  const historyRouter = configService.get<string>('HISTORY_ROUTER');
+  const swaggerEnabled = configService.get<string>('SWAGGER_ENABLED');
   
   // 配置仅生产环境托管静态资源
-  const historyRouter = JSON.parse(appContext.get(ConfigService).get<string>('HISTORY_ROUTER'));
-  
   if (historyRouter) {
     app.use(history());
     app.use(express.static(path.join(__dirname, 'public')))
   }
 
   // 配置swagger仅在开发环境启用
-  const swaggerEnabled = JSON.parse(appContext.get(ConfigService).get<string>('SWAGGER_ENABLED'));
   if (swaggerEnabled) {
     const options = new DocumentBuilder()
     .setTitle('防互窜管理系统')
@@ -58,8 +60,6 @@ async function bootstrap() {
       },
     });
   }
-
-  await appContext.close();
 
   await app.listen(9000);
 }

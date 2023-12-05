@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build --webpack",
+    "build": "nest build --webpack --env=production",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -31,6 +31,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "connect-history-api-fallback": "^2.0.0",
+    "dotenv-webpack": "^8.0.1",
     "express": "^4.18.2",
     "mysql2": "^3.6.3",
     "passport": "^0.6.0",
