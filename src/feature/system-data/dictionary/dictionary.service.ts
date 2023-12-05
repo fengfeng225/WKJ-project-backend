@@ -47,7 +47,7 @@ export class DictionaryService {
         id
       }
     })
-    if (!dictionary) throw new NotFoundException('没有找到字段')
+    if (!dictionary) throw new NotFoundException('没有找到字段信息')
     return dictionary
   }
 
@@ -58,7 +58,7 @@ export class DictionaryService {
       }
     })
 
-    if (!dictionary) throw new NotFoundException('没有找到字段')
+    if (!dictionary) throw new NotFoundException('没有找到字段信息')
 
     const isExist = await this.dictionaryRepository.findOne({
       where: [
@@ -158,7 +158,7 @@ export class DictionaryService {
         id
       }
     })
-    if (!option) throw new NotFoundException('没有找到选项')
+    if (!option) throw new NotFoundException('没有找到选项信息')
     return option
   }
 
@@ -169,7 +169,7 @@ export class DictionaryService {
       }
     })
 
-    if (!option) throw new NotFoundException('没有找到选项')
+    if (!option) throw new NotFoundException('没有找到选项信息')
 
     const isExist = await this.optionRepository.findOne({
       where: [

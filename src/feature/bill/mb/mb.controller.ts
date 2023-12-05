@@ -185,4 +185,7 @@ export class MbController {
   findAllClass() {
     return this.mbService.findAllClass();
   }
+
+  // checkRecord
+  
 }

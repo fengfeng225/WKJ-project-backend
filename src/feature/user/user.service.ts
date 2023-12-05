@@ -142,7 +142,7 @@ export class UserService {
       }
     })
 
-    if (!user) throw new NotFoundException('没有找到用户') 
+    if (!user) throw new NotFoundException('没有找到用户信息') 
 
     const isExist = await this.userRepository.findOne({
       where: [

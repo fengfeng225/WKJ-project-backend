@@ -95,7 +95,7 @@ export class MbService {
       }
     })
 
-    if (!shortBill) throw new NotFoundException('没有找到盲板')
+    if (!shortBill) throw new NotFoundException('没有找到盲板信息')
 
     return shortBill
   }
@@ -110,7 +110,7 @@ export class MbService {
       }
     })
 
-    if (!shortBill) throw new NotFoundException('没有找到盲板')
+    if (!shortBill) throw new NotFoundException('没有找到盲板信息')
 
     const isExist = await this.shortRepository.findOne({
       where: {
@@ -232,7 +232,7 @@ export class MbService {
       }
     })
 
-    if(!longBill) throw new NotFoundException('没有找到盲板')
+    if(!longBill) throw new NotFoundException('没有找到盲板信息')
 
     return longBill
   }
@@ -247,7 +247,7 @@ export class MbService {
       }
     })
 
-    if (!longBill) throw new NotFoundException('没有找到盲板')
+    if (!longBill) throw new NotFoundException('没有找到盲板信息')
 
     const isExist = await this.longRepository.findOne({
       where: {
@@ -297,12 +297,14 @@ export class MbService {
   }
 
 
-  // class
+  // 获取班组
   async findAllClass(): Promise<{list: MbClass[]}> {
     const list =  await this.classRepository
     .createQueryBuilder('class')
+    .select(['class.id', 'class.fullName'])
     .orderBy('sortCode')
     .getMany()
+
     return {
       list
     }
@@ -366,28 +368,28 @@ export class MbService {
   // 初始测试数据
   async initClass() {
     const class1 = new MbClass()
-    class1.label = '白油一班'
+    class1.fullName = '白油一班'
 
     const class2 = new MbClass()
-    class2.label = '白油二班'
+    class2.fullName = '白油二班'
 
     const class3 = new MbClass()
-    class3.label = '白油三班'
+    class3.fullName = '白油三班'
 
     const class4 = new MbClass()
-    class4.label = '白油四班'
+    class4.fullName = '白油四班'
 
     const class5 = new MbClass()
-    class5.label = '高加一班'
+    class5.fullName = '高加一班'
 
     const class6 = new MbClass()
-    class6.label = '高加二班'
+    class6.fullName = '高加二班'
 
     const class7 = new MbClass()
-    class7.label = '高加三班'
+    class7.fullName = '高加三班'
 
     const class8 = new MbClass()
-    class8.label = '高加四班'
+    class8.fullName = '高加四班'
 
     await this.classRepository.save([class1, class2, class3, class4, class5, class6, class7, class8, ])
   }

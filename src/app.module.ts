@@ -15,6 +15,7 @@ import { ColumnModule } from './feature/column/column.module';
 import { MbModule } from './feature/bill/mb/mb.module';
 import { DictionaryModule } from './feature/system-data/dictionary/dictionary.module';
 import { HomeModule } from './feature/home/home.module';
+import { CheckPlanModule } from './feature/check-plan/check-plan.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -46,7 +47,8 @@ import envConfig from 'config/envConfig';
     ColumnModule,
     MbModule,
     DictionaryModule,
-    HomeModule
+    HomeModule,
+    CheckPlanModule
   ],
   controllers: [AppController],
   providers: [

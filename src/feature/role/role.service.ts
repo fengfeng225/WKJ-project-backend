@@ -55,7 +55,7 @@ export class RoleService {
         id
       }
     })
-    if (!role) throw new NotFoundException('没有找到角色')
+    if (!role) throw new NotFoundException('没有找到角色信息')
     return role
   }
 
@@ -66,7 +66,7 @@ export class RoleService {
       }
     })
 
-    if (!role) throw new NotFoundException('没有找到角色')
+    if (!role) throw new NotFoundException('没有找到角色信息')
 
     const isExist = await this.roleRepository.findOne({
       where: [
@@ -190,7 +190,7 @@ export class RoleService {
       }
     })
 
-    if (!role) throw new NotFoundException('没有找到角色');
+    if (!role) throw new NotFoundException('没有找到角色信息');
 
     const newMenus = menus.length ? await this.menuRepository
     .createQueryBuilder('menu')

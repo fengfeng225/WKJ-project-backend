@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Query, Delete } from '@nestjs/
 import { MenuService } from './menu.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
-import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('menu')
@@ -13,6 +13,7 @@ export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
   @ApiOperation({summary:"获取菜单列表"})
+  @ApiQuery({name: 'keyword', required: false})
   @Get('list')
   findAll(@Query('keyword')  keyword: string) {
     return this.menuService.findAll(keyword);
@@ -25,9 +26,6 @@ export class MenuController {
   }
 
   @ApiOperation({summary:"新建菜单"})
-  @ApiBody({
-    type: CreateMenuDto
-  })
   @Post()
   create(@Body() createMenuDto: CreateMenuDto) {
     return this.menuService.create(createMenuDto);
@@ -40,9 +38,6 @@ export class MenuController {
   }
 
   @ApiOperation({summary:"更新菜单"})
-  @ApiBody({
-    type: UpdateMenuDto
-  })
   @Put(':id')
   update(@Param('id') id: string, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menuService.update(id, updateMenuDto);

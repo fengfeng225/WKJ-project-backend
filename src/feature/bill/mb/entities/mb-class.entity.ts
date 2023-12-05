@@ -10,6 +10,7 @@ import util from 'src/utils/util';
 import { MbShort } from './mb-short.entity';
 import { MbLong } from './mb-long.entity';
 import { MbDisassembly } from './mb-disassembly.entity';
+import { CheckRecord } from 'src/feature/check-plan/entities/check-record.entity';
 
 @Entity()
 export class MbClass {
@@ -25,7 +26,7 @@ export class MbClass {
     length: 50,
     comment: '名称'
   })
-  label: string;
+  fullName: string;
 
   @Column({
     type: 'int',
@@ -51,4 +52,7 @@ export class MbClass {
 
   @OneToMany(() => MbDisassembly, (mbDisassembly) => mbDisassembly.class)
   mbDisassemblys: MbDisassembly[];
+
+  @OneToMany(() => CheckRecord, (checkRecord) => checkRecord.class)
+  records: CheckRecord[]
 }

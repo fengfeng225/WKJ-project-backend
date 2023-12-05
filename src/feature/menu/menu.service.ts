@@ -90,7 +90,7 @@ export class MenuService {
         id
       }
     })
-    if (!menu) throw new NotFoundException('没有找到菜单')
+    if (!menu) throw new NotFoundException('没有找到菜单信息')
     return menu
   }
 
@@ -101,7 +101,7 @@ export class MenuService {
       }
     })
 
-    if (!menu) throw new NotFoundException('没有找到菜单')
+    if (!menu) throw new NotFoundException('没有找到菜单信息')
 
     const isExist = await this.menuRepository.findOne({
       where: [
