@@ -272,16 +272,7 @@ export class UserService {
 
   // 获取用户权限（权限守卫用）
   async getUserPermissions(userId: string) {
-    const menus = await this.menuRepository
-    .createQueryBuilder('menu')
-    .select(['menu.id', 'menu.entityCode'])
-    .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
-    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
-    .where('urr.userId = :userId', { userId })
-    .andWhere('menu.enabledMark = 1')
-    .getMany();
-
-    const buttons = await this.menuRepository
+    return await this.menuRepository
     .createQueryBuilder('menu')
     .select(['menu.id', 'menu.entityCode'])
     .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
@@ -291,8 +282,6 @@ export class UserService {
     .where('urr.userId = :userId', { userId })
     .andWhere('menu.enabledMark = 1')
     .getMany();
-
-    return { menus, buttons }
   }
 
   // 添加测试数据
@@ -407,10 +396,10 @@ export class UserService {
     menu12.type = 2
 
     const menu13 = new Menu()
-    menu13.fullName = '班组'
-    menu13.entityCode = 'groups'
+    menu13.fullName = '盲板检查记录'
+    menu13.entityCode = 'mbCheckRecords'
     menu13.icon = 'ym-custom ym-custom-format-list-bulleted'
-    menu13.urlAddress = 'bill/mb/groups'
+    menu13.urlAddress = 'bill/mb/checkRecords'
     menu13.type = 2
 
     const menu14 = new Menu()

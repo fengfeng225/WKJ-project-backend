@@ -3,9 +3,11 @@ import { ButtonService } from './button.service';
 import { CreateButtonDto } from './dto/create-button.dto';
 import { UpdateButtonDto } from './dto/update-button.dto';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('button')
 @ApiBearerAuth()
+@RequirePermission('admin')
 @Controller('system/menuButton')
 export class ButtonController {
   constructor(private readonly buttonService: ButtonService) {}

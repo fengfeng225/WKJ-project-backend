@@ -3,9 +3,11 @@ import { ColumnService } from './column.service';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { UpdateColumnDto } from './dto/update-column.dto';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('column')
 @ApiBearerAuth()
+@RequirePermission('admin')
 @Controller('system/menuColumn')
 export class ColumnController {
   constructor(private readonly columnService: ColumnService) {}

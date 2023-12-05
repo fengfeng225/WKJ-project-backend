@@ -5,9 +5,11 @@ import { UpdateRoleDto } from './dto/update-role.dto';
 import { FindRoleAuthorizeDto } from './dto/find-roleAuthorize.dto';
 import { UpdateRoleAuthorizeDto } from './dto/update-roleAuthorize.dto';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('role')
 @ApiBearerAuth()
+@RequirePermission('admin')
 @Controller('permission/role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}

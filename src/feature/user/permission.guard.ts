@@ -12,25 +12,31 @@ export class PermissionGuard implements CanActivate {
   ) {}
 
   async canActivate( context: ExecutionContext): Promise<boolean> {
-    const permissions = this.reflector.getAllAndOverride<{requireMenus: string[], requireButtons: []}>(Require_Permission_Key, [
+    // 必须写前面，否则登录接口获取不到user信息
+    const permissions = this.reflector.getAllAndOverride(Require_Permission_Key, [
       context.getClass(),
       context.getHandler()
     ])
-
     if (!permissions) return true
-    
-    const request = context.switchToHttp().getRequest()
 
+    const request = context.switchToHttp().getRequest()
     if (request.user.account === 'admin') return true
 
-    const {requireMenus, requireButtons} = permissions
-    const {menus, buttons} = await this.userService.getUserPermissions(request.user.userId)
-    // console.log(menus, buttons);
-    const canAccessMenu = menus.some(menu => requireMenus.includes(menu.entityCode))
-    const canAccessButton = false
+    if (typeof permissions === 'string' && permissions === 'admin') throw new UnauthorizedException('您没有权限访问！');
 
-    const hasPermission = canAccessMenu || canAccessButton
-    if (!hasPermission) throw new UnauthorizedException('您没有权限访问！');
+    const {requireMenu, requireButton} = permissions
+    const menuWithButtons = await this.userService.getUserPermissions(request.user.userId)
+    
+    let canAccessApi = true
+    const menu = menuWithButtons.find(menu => requireMenu === menu.entityCode)
+    if (!menu) {
+      canAccessApi = false
+    } else {
+      if (!requireButton) return canAccessApi;
+      canAccessApi = menu.buttons.some(button => button.entityCode === requireButton)
+    }
+
+    if (!canAccessApi) throw new UnauthorizedException('您没有权限访问！');
     return true;
   }
 }

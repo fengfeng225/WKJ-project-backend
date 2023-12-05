@@ -3,9 +3,11 @@ import { MenuService } from './menu.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { ApiBody, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('menu')
 @ApiBearerAuth()
+@RequirePermission('admin')
 @Controller('system/menu')
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
