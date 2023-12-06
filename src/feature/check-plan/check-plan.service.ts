@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
+import { SchedulerRegistry } from '@nestjs/schedule';
 import { UpdateCheckPlanDto } from './dto/update-check-plan.dto';
 import { CheckPlanRunLog } from './entities/check-plan-run-log.entity';
 import { CheckPlan } from './entities/check-plan.entity';
@@ -14,7 +15,8 @@ export class CheckPlanService {
     @InjectRepository(CheckPlan)
     private readonly planRepository:Repository<CheckPlan>,
     @InjectRepository(CheckRecord)
-    private readonly recordRepository:Repository<CheckRecord>
+    private readonly recordRepository:Repository<CheckRecord>,
+    private schedulerRegistry: SchedulerRegistry
   ){}
 
   async findAll(keyword: string) {
@@ -143,10 +145,11 @@ export class CheckPlanService {
     // 停止 将当前周期检查status为0的改为-1
   }
 
-  // 开启定时任务，main.ts初始化时调用
-  private enableScheduledTask() {
+  // 初始化定时任务
+  async initScheduledTask() {
+    console.log(123);
     // 检查当前周期是否有记录，没有则立即添加，有则将未完成的检查status改为0
-
+    
     // 定时执行，先将当前周期checking改为0，未完成检查status改为-1，添加新一轮记录，添加下发日志，推送首页
   }
 }

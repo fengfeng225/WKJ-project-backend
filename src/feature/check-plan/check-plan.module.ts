@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CheckPlanService } from './check-plan.service';
 import { CheckPlanController } from './check-plan.controller';
@@ -13,4 +13,10 @@ import { CheckRecord } from './entities/check-record.entity';
   controllers: [CheckPlanController],
   providers: [CheckPlanService],
 })
-export class CheckPlanModule {}
+export class CheckPlanModule implements OnModuleInit {
+  constructor(private checkPlanService: CheckPlanService) {}
+
+  async onModuleInit() {
+    await this.checkPlanService.initScheduledTask();
+  }
+}
