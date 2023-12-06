@@ -4,7 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionFilter } from './core/filters/all-exception.filter';
 import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import envConfig from 'config/envConfig';
 import * as path from 'path';
@@ -12,6 +12,8 @@ import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
 
 async function bootstrap() {
+  const logger: Logger = new Logger('main.ts');
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     // logger: ['error', 'warn', 'log'],
   });
@@ -61,6 +63,8 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(9000);
+  await app.listen(9000, () => {
+    logger.log(`Now listening on: http://localhost:9000`);
+  });
 }
 bootstrap();
