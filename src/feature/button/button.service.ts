@@ -45,7 +45,7 @@ export class ButtonService {
         id
       }
     })
-    if(!button) throw new NotFoundException('没有找到按钮')
+    if(!button) throw new NotFoundException('没有找到按钮信息')
     return button
   }
 
@@ -56,7 +56,7 @@ export class ButtonService {
       }
     })
 
-    if (!button) throw new NotFoundException('没有找到按钮')
+    if (!button) throw new NotFoundException('没有找到按钮信息')
 
     const isExist = await this.buttonRepository.findOne({
       where: [

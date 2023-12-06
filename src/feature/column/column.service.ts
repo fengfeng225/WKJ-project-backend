@@ -61,7 +61,7 @@ export class ColumnService {
         id
       }
     })
-    if (!column) throw new NotFoundException('没有找到表格列')
+    if (!column) throw new NotFoundException('没有找到列信息')
     return column
   }
 
@@ -72,7 +72,7 @@ export class ColumnService {
       }
     })
 
-    if (!column) throw new NotFoundException('没有找到表格列')
+    if (!column) throw new NotFoundException('没有找到列信息')
 
     const isExist = await this.columnRepository.findOne({
       where: [

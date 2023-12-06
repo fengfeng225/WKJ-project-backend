@@ -142,7 +142,7 @@ export class UserService {
       }
     })
 
-    if (!user) throw new NotFoundException('没有找到用户') 
+    if (!user) throw new NotFoundException('没有找到用户信息') 
 
     const isExist = await this.userRepository.findOne({
       where: [
@@ -396,10 +396,10 @@ export class UserService {
     menu12.type = 2
 
     const menu13 = new Menu()
-    menu13.fullName = '盲板检查记录'
-    menu13.entityCode = 'mbCheckRecord'
+    menu13.fullName = '班组检查(盲板)'
+    menu13.entityCode = 'classCheckMb'
     menu13.icon = 'ym-custom ym-custom-format-list-bulleted'
-    menu13.urlAddress = 'bill/mb/checkRecord'
+    menu13.urlAddress = 'bill/mb/classCheck'
     menu13.type = 2
 
     const menu14 = new Menu()

@@ -1,9 +1,11 @@
-import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
+import { CreateClassDto } from './dto/create-class.dto';
+import { UpdateClassDto } from './dto/update-class.dto';
 import { MbClass } from './entities/mb-class.entity';
 import { MbShort } from './entities/mb-short.entity';
 import { MbLong } from './entities/mb-long.entity';
@@ -95,7 +97,7 @@ export class MbService {
       }
     })
 
-    if (!shortBill) throw new NotFoundException('没有找到盲板')
+    if (!shortBill) throw new NotFoundException('没有找到盲板信息')
 
     return shortBill
   }
@@ -110,7 +112,7 @@ export class MbService {
       }
     })
 
-    if (!shortBill) throw new NotFoundException('没有找到盲板')
+    if (!shortBill) throw new NotFoundException('没有找到盲板信息')
 
     const isExist = await this.shortRepository.findOne({
       where: {
@@ -232,7 +234,7 @@ export class MbService {
       }
     })
 
-    if(!longBill) throw new NotFoundException('没有找到盲板')
+    if(!longBill) throw new NotFoundException('没有找到盲板信息')
 
     return longBill
   }
@@ -247,7 +249,7 @@ export class MbService {
       }
     })
 
-    if (!longBill) throw new NotFoundException('没有找到盲板')
+    if (!longBill) throw new NotFoundException('没有找到盲板信息')
 
     const isExist = await this.longRepository.findOne({
       where: {
@@ -297,15 +299,83 @@ export class MbService {
   }
 
 
-  // class
+  // 获取班组
   async findAllClass(): Promise<{list: MbClass[]}> {
     const list =  await this.classRepository
     .createQueryBuilder('class')
+    .select(['class.id', 'class.fullName'])
     .orderBy('sortCode')
     .getMany()
+
     return {
       list
     }
+  }
+
+  async createClass(createClassDto: CreateClassDto) {
+    const isExist = await this.classRepository.findOne({
+      where: {
+        fullName: createClassDto.fullName
+      }
+    })
+
+    if (isExist) throw new ConflictException('名称重复，请重试')
+
+    const entity = this.classRepository.create(createClassDto) 
+    await this.classRepository.save(entity)
+    return null
+  }
+
+  async updateClass(id: string, updateClassDto: UpdateClassDto) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有找到当前班组')
+
+    const isExist = await this.classRepository.findOne({
+      where: {
+        fullName: updateClassDto.fullName, id: Not(updateClassDto.id)
+      }
+    })
+
+    if (isExist) throw new ConflictException('名称重复，请重试')
+
+    await this.classRepository.save(updateClassDto)
+    return null
+  }
+
+  async deleteClass(id: string) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      },
+      relations: {
+        mbShorts: true,
+        mbLongs: true,
+        mbDisassemblys: true
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有找到当前班组')
+    if (currentClass.mbShorts.length || currentClass.mbLongs.length || currentClass.mbDisassemblys.length) throw new ForbiddenException('还有相关联的数据，不允许删除！')
+
+    await this.classRepository.softRemove(currentClass)
+    return null
+  }
+
+  async findOneClass(id: string) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有获取到当前班组信息')
+    return currentClass
+  }
+
+  async findAllClassWithCheckStatus() {
+    
   }
 
   // 获取拆装明细
@@ -366,28 +436,28 @@ export class MbService {
   // 初始测试数据
   async initClass() {
     const class1 = new MbClass()
-    class1.label = '白油一班'
+    class1.fullName = '白油一班'
 
     const class2 = new MbClass()
-    class2.label = '白油二班'
+    class2.fullName = '白油二班'
 
     const class3 = new MbClass()
-    class3.label = '白油三班'
+    class3.fullName = '白油三班'
 
     const class4 = new MbClass()
-    class4.label = '白油四班'
+    class4.fullName = '白油四班'
 
     const class5 = new MbClass()
-    class5.label = '高加一班'
+    class5.fullName = '高加一班'
 
     const class6 = new MbClass()
-    class6.label = '高加二班'
+    class6.fullName = '高加二班'
 
     const class7 = new MbClass()
-    class7.label = '高加三班'
+    class7.fullName = '高加三班'
 
     const class8 = new MbClass()
-    class8.label = '高加四班'
+    class8.fullName = '高加四班'
 
     await this.classRepository.save([class1, class2, class3, class4, class5, class6, class7, class8, ])
   }
