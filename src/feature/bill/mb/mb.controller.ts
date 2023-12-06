@@ -3,6 +3,8 @@ import { MbService } from './mb.service';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { FindAllMbDto } from './dto/findAll-mb.dto';
+import { CreateClassDto } from './dto/create-class.dto';
+import { UpdateClassDto } from './dto/update-class.dto';
 import { RequireLogin } from 'src/decorators/require-login';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
@@ -18,6 +20,44 @@ export class MbController {
   async initClass() {
     await this.mbService.initClass()
     return 'done'
+  }
+
+  // classBasicInfo
+  @ApiOperation({summary:"获取班组分类"})
+  @Get('class')
+  findAllClass() {
+    return this.mbService.findAllClass();
+  }
+
+  @ApiOperation({summary:"新增班组"})
+  @Post('class')
+  createClass(@Body() createClassDto: CreateClassDto) {
+    return this.mbService.createClass(createClassDto);
+  }
+
+  @ApiOperation({summary:"更新班组信息"})
+  @Put('class/:id')
+  updateClass(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
+    return this.mbService.updateClass(id, updateClassDto);
+  }
+
+  @ApiOperation({summary:"删除班组"})
+  @Delete('class/:id')
+  deleteClass(@Param('id') id: string) {
+    return this.mbService.deleteClass(id);
+  }
+
+  @ApiOperation({summary:"获取班组信息"})
+  @Get('class/:id')
+  findOneClass(@Param('id') id: string) {
+    return this.mbService.findOneClass(id);
+  }
+
+  // classCheck
+  @ApiOperation({summary:"获取带有检查信息的班组列表"})
+  @Get('classWithCheckStatus')
+  findAllClassWithCheckStatus() {
+    return this.mbService.findAllClassWithCheckStatus();
   }
 
   // shortBill
@@ -178,14 +218,4 @@ export class MbController {
   removeDisassembleDetail(@Param('id') id: string) {
     return this.mbService.removeDisassembleDetail(id);
   }
-
-  // class
-  @ApiOperation({summary:"获取班组列表"})
-  @Get('class')
-  findAllClass() {
-    return this.mbService.findAllClass();
-  }
-
-  // checkRecord
-  
 }

@@ -2,12 +2,13 @@ import { Controller, Get, Body, Put, Param, Query } from '@nestjs/common';
 import { CheckPlanService } from './check-plan.service';
 import { UpdateCheckPlanDto } from './dto/update-check-plan.dto';
 import { FindLogDto } from './dto/find-log.dto';
+import { CheckInfoDto } from './dto/check-info.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
-@ApiTags('checkPlan')
+@ApiTags('billCheck')
 @ApiBearerAuth()
-@Controller('scheduledTask/checkPlan')
+@Controller('scheduledTask')
 export class CheckPlanController {
   constructor(private readonly checkPlanService: CheckPlanService) {}
 
@@ -17,39 +18,51 @@ export class CheckPlanController {
   @ApiQuery({name: 'endTime', required: false})
   @ApiQuery({name: 'currentPage', required: false})
   @ApiQuery({name: 'pageSize', required: false})
-  @Get(':id/log')
+  @Get('checkPlan/:id/log')
   findLogs(@Param('id') id: string, @Query() findLogDto: FindLogDto) {
     return this.checkPlanService.findLogs(id, findLogDto);
   }
 
   @ApiOperation({summary:"开启检查计划下发"})
-  @Put('enable/:id')
+  @Put('checkPlan/enable/:id')
   enableCheck(@Param('id') id: string) {
     return this.checkPlanService.enableCheck(id);
   }
 
   @ApiOperation({summary:"停止检查计划下发"})
-  @Put('stop/:id')
+  @Put('checkPlan/stop/:id')
   stopCheck(@Param('id') id: string) {
     return this.checkPlanService.stopCheck(id);
   }
 
   @ApiOperation({summary:"获取检查计划列表"})
   @ApiQuery({name: 'keyword', required: false})
-  @Get()
+  @Get('checkPlan')
   findAll(@Param('keyword') keyword: string) {
     return this.checkPlanService.findAll(keyword);
   }
 
   @ApiOperation({summary:"获取检查计划信息"})
-  @Get(':id')
+  @Get('checkPlan/:id')
   findOne(@Param('id') id: string) {
     return this.checkPlanService.findOne(id);
   }
 
   @ApiOperation({summary:"更新检查计划信息"})
-  @Put(':id')
+  @Put('checkPlan/:id')
   update(@Param('id') id: string, @Body() updateCheckPlanDto: UpdateCheckPlanDto) {
     return this.checkPlanService.update(id, updateCheckPlanDto);
+  }
+
+  @ApiOperation({summary:"一键检查"})
+  @Put('bill/checkAll')
+  checkAll(@Body() checkInfoDto: CheckInfoDto) {
+    return this.checkPlanService.checkAll(checkInfoDto);
+  }
+
+  @ApiOperation({summary:"获取检查记录"})
+  @Get('bill/checkRecords/:id')
+  getRecords(@Param('id') id: string) {
+    return this.checkPlanService.getRecords(id);
   }
 }

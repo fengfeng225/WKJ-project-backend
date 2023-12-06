@@ -31,6 +31,34 @@ export class MbClass {
   @Column({
     type: 'int',
     default: 0,
+    comment: '当前检查(短期)'
+  })
+  shortCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: 1,
+    comment: '历史检查(短期)'
+  })
+  shortCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: 0,
+    comment: '当前检查(长期)'
+  })
+  longCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: 1,
+    comment: '历史检查(长期)'
+  })
+  longCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: 0,
     comment: '排序'
   })
   sortCode: number;

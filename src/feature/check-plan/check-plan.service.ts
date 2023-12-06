@@ -112,6 +112,39 @@ export class CheckPlanService {
     return null
   }
 
-  // 更新定时任务
+  async checkAll({
+    classIds,
+    inspector,
+    type
+  }) {
+    const checkRecords = await this.recordRepository
+    .createQueryBuilder('record')
+    .where('checking = 1')
+    .andWhere('entityCode = :type', {type})
+    .andWhere('classId IN (:...classIds)', {classIds})
+    .getMany()
+
+    if (!checkRecords) throw new NotFoundException('没有找到检查项')
+
+    checkRecords.forEach(item => {
+      item.inspector = inspector
+      item.checkStatus = 1
+    })
+    await this.recordRepository.save(checkRecords)
+    return null
+  }
+
+  async getRecords(id: string) {
+
+  }
+
+  // 更新定时任务 启动、停止、修改周期
   private updateScheduledTask() {}
+
+  // 开启定时任务，main.ts初始化时调用
+  private enableScheduledTask() {
+    // 检查当前周期是否有记录，没有则立即添加
+
+    // 定时执行，先将当前周期checking改为0，未完成检查status改为-1，添加新一轮记录，添加下发日志，推送首页
+  }
 }

@@ -1,9 +1,11 @@
-import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
+import { CreateClassDto } from './dto/create-class.dto';
+import { UpdateClassDto } from './dto/update-class.dto';
 import { MbClass } from './entities/mb-class.entity';
 import { MbShort } from './entities/mb-short.entity';
 import { MbLong } from './entities/mb-long.entity';
@@ -308,6 +310,72 @@ export class MbService {
     return {
       list
     }
+  }
+
+  async createClass(createClassDto: CreateClassDto) {
+    const isExist = await this.classRepository.findOne({
+      where: {
+        fullName: createClassDto.fullName
+      }
+    })
+
+    if (isExist) throw new ConflictException('名称重复，请重试')
+
+    const entity = this.classRepository.create(createClassDto) 
+    await this.classRepository.save(entity)
+    return null
+  }
+
+  async updateClass(id: string, updateClassDto: UpdateClassDto) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有找到当前班组')
+
+    const isExist = await this.classRepository.findOne({
+      where: {
+        fullName: updateClassDto.fullName, id: Not(updateClassDto.id)
+      }
+    })
+
+    if (isExist) throw new ConflictException('名称重复，请重试')
+
+    await this.classRepository.save(updateClassDto)
+    return null
+  }
+
+  async deleteClass(id: string) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      },
+      relations: {
+        mbShorts: true,
+        mbLongs: true,
+        mbDisassemblys: true
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有找到当前班组')
+    if (currentClass.mbShorts.length || currentClass.mbLongs.length || currentClass.mbDisassemblys.length) throw new ForbiddenException('还有相关联的数据，不允许删除！')
+
+    await this.classRepository.softRemove(currentClass)
+    return null
+  }
+
+  async findOneClass(id: string) {
+    const currentClass = await this.classRepository.findOne({
+      where: {
+        id
+      }
+    })
+    if (!currentClass) throw new NotFoundException('没有获取到当前班组信息')
+    return currentClass
+  }
+
+  async findAllClassWithCheckStatus() {
+    
   }
 
   // 获取拆装明细

@@ -20,7 +20,7 @@ export class CheckRecord {
 
   @Column({
     length: 50,
-    comment: '台账名称' // 待更新
+    comment: '台账类别' // 待更新 例如 1月检查
   })
   fullName: string;
 
@@ -32,7 +32,7 @@ export class CheckRecord {
 
   @Column({
     type: 'int',
-    comment: '检查状态'
+    comment: '检查状态, 0表示待检查，1表示完成，-1表示未完成，2表示未完成但已处理'
   })
   checkStatus: number;
 
