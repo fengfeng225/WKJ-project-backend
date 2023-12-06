@@ -43,7 +43,7 @@ async function bootstrap() {
   // 配置仅生产环境托管静态资源
   if (historyRouter) {
     app.use(history());
-    app.use(express.static(path.join(__dirname, 'public')))
+    app.use(express.static(path.join(__dirname, '..', 'public')))
   }
 
   // 配置swagger仅在开发环境启用
