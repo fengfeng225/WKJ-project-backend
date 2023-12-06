@@ -34,11 +34,9 @@ async function bootstrap() {
   const configService = new ConfigService({
     envFilePath: [envConfig.path],
   });
-  console.log(configService.get<string>('HISTORY_ROUTER'), configService.get<string>('DB_PASSWORD'));
   
-  
-  const historyRouter = configService.get<string>('HISTORY_ROUTER');
-  const swaggerEnabled = configService.get<string>('SWAGGER_ENABLED');
+  const historyRouter = JSON.parse(configService.get<string>('HISTORY_ROUTER'));
+  const swaggerEnabled = JSON.parse(configService.get<string>('SWAGGER_ENABLED'));
   
   // 配置仅生产环境托管静态资源
   if (historyRouter) {
