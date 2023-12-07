@@ -280,8 +280,8 @@ export class CheckPlanService {
             // 更新计划信息 runCount lastRunTime nextRunTime
             const job = this.schedulerRegistry.getCronJob(plan.entityCode)
             plan.runCount = plan.runCount + 1
-            plan.lastRunTime = new Date(job.lastDate())
-            plan.nextRunTime = new Date(job.nextDate().toLocaleString())
+            plan.lastRunTime = new Date(job.lastDate().getTime() - job.lastDate().getTimezoneOffset() * 60000)
+            plan.nextRunTime = new Date(job.nextDate().toLocaleString())new Date(job.lastDate().getTime() - job.lastDate().getTimezoneOffset() * 60000)
             await this.planRepository.save(plan)
 
             this.logger.log(`下发${plan.fullName}检查计划成功`)
@@ -298,7 +298,11 @@ export class CheckPlanService {
         this.schedulerRegistry.addCronJob(plan.entityCode, job)
         if (plan.enabledMark === 1) job.start()
     })
-    
+    const job = new CronJob(`30 * * * * *`, () => {
+      const now = new Date()
+      console.log(new Date(now.getTime() - now.getTimezoneOffset() * 60000));
+    }, null, false, null, null, true);
+
     this.logger.log(`检查计划任务调度初始化完成`)
   }
 }
