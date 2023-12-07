@@ -403,7 +403,7 @@ export class UserService {
     menu13.type = 2
 
     const menu14 = new Menu()
-    menu14.fullName = '定时任务'
+    menu14.fullName = '任务调度'
     menu14.entityCode = 'scheduledTask'
     menu14.icon = 'icon-ym icon-ym-sysQuartz'
     menu14.type = 1

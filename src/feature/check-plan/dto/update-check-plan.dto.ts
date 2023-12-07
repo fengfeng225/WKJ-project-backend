@@ -20,14 +20,6 @@ export class UpdateCheckPlanDto {
 
   @ApiProperty({
     example:"string",
-    description:"编码"
-  })
-  @IsNotEmpty()
-  @IsString()
-  entityCode: string;
-
-  @ApiProperty({
-    example:"string",
     description:"cron表达式"
   })
   @IsNotEmpty()

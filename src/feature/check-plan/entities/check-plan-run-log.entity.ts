@@ -20,7 +20,7 @@ export class CheckPlanRunLog {
 
   @Column({
     type: 'int',
-    comment: '下发结果'
+    comment: '下发结果，1-成功，0-失败'
   })
   runResult: number;
 

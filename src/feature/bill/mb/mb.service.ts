@@ -375,7 +375,14 @@ export class MbService {
   }
 
   async findAllClassWithCheckStatus() {
-    
+    const list = await this.classRepository.find({
+      order: {
+        sortCode: 'ASC'
+      }
+    })
+    return {
+      list
+    }
   }
 
   // 获取拆装明细

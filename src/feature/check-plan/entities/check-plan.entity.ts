@@ -31,6 +31,12 @@ export class CheckPlan {
   entityCode: string;
 
   @Column({
+    length: 50,
+    comment: '班组类型'
+  })
+  classType: string;
+
+  @Column({
     type: 'text',
     nullable: true,
     comment: '说明'
@@ -52,12 +58,14 @@ export class CheckPlan {
 
   @Column({
     nullable: true,
+    type: 'timestamp',
     comment: '最后下发时间'
   })
   lastRunTime: Date;
 
   @Column({
     nullable: true,
+    type: 'timestamp',
     comment: '下次下发时间'
   })
   nextRunTime: Date;
@@ -79,7 +87,7 @@ export class CheckPlan {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
   creatorTime: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
   @OneToMany(() => CheckPlanRunLog, log => log.checkPlan)

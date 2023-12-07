@@ -65,4 +65,10 @@ export class CheckPlanController {
   getRecords(@Param('id') id: string) {
     return this.checkPlanService.getRecords(id);
   }
+
+  @ApiOperation({summary:"处理检查异常"})
+  @Put('bill/checkRecord/fix/:id')
+  fixRecord(@Param('id') id: string) {
+    return this.checkPlanService.fixRecord(id);
+  }
 }
