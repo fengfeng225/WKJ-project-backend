@@ -293,15 +293,11 @@ export class CheckPlanService {
             log.checkPlanId = plan.id
             await this.logRepository.save(log)
           }
-        })
+        }, null, false, null, null, plan.enabledMark === 1)
 
         this.schedulerRegistry.addCronJob(plan.entityCode, job)
         if (plan.enabledMark === 1) job.start()
     })
-    // const job = new CronJob(`30 * * * * *`, () => {
-    //   console.log(123)
-    // }, null, false, null, null, true);
-    // job.start();
     
     this.logger.log(`检查计划任务调度初始化完成`)
   }
