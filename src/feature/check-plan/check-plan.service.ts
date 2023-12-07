@@ -113,14 +113,10 @@ export class CheckPlanService {
     // 开启任务
     const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
     job.start()
+    job.fireOnTick()
 
-    // 是否有停用时的记录
-    const records = await this.recordRepository.find({
-      where: {
-        checking: 2,
-        entityCode: checkPlan.entityCode
-      }
-    })
+    checkPlan.enabledMark = 1
+    await this.planRepository.save(checkPlan)
   }
 
   async stopCheck(id: string) {
@@ -146,6 +142,7 @@ export class CheckPlanService {
     // 开启事务
     // 将进行中的任务记录checking改为2
     records.forEach(record => record.checking = 2)
+    await this.recordRepository.save(records)
     // 将班组本期检查状态改为空
 
     // 修改计划为停用
@@ -211,7 +208,6 @@ export class CheckPlanService {
 
   // 更新班组检查状态
   private updateClassCheckStatus() {
-    // 停止 将当前周期检查status为0的改为-1
     // 启动 检查当前周期是否有记录，没有则立即添加，有则将未完成的检查status改为0
   }
 
@@ -237,6 +233,18 @@ export class CheckPlanService {
 
             // 按类别划分
             if (plan.classType === 'categoryDivide') {
+
+            }
+
+            // 获取停用时的记录
+            const records = await this.recordRepository.find({
+              where: {
+                checking: 2,
+                entityCode: plan.entityCode
+              }
+            })
+
+            if (records.length > 0) {
 
             }
 
@@ -281,7 +289,7 @@ export class CheckPlanService {
             const job = this.schedulerRegistry.getCronJob(plan.entityCode)
             plan.runCount = plan.runCount + 1
             plan.lastRunTime = new Date(job.lastDate().getTime() - job.lastDate().getTimezoneOffset() * 60000)
-            plan.nextRunTime = new Date(job.nextDate().toLocaleString())new Date(job.lastDate().getTime() - job.lastDate().getTimezoneOffset() * 60000)
+            plan.nextRunTime = new Date(job.nextDate().toLocaleString())
             await this.planRepository.save(plan)
 
             this.logger.log(`下发${plan.fullName}检查计划成功`)
@@ -293,15 +301,14 @@ export class CheckPlanService {
             log.checkPlanId = plan.id
             await this.logRepository.save(log)
           }
-        }, null, false, null, null, plan.enabledMark === 1)
+        })
 
         this.schedulerRegistry.addCronJob(plan.entityCode, job)
-        if (plan.enabledMark === 1) job.start()
+        if (plan.enabledMark === 1) {
+          job.start()
+          job.fireOnTick()
+        }
     })
-    const job = new CronJob(`30 * * * * *`, () => {
-      const now = new Date()
-      console.log(new Date(now.getTime() - now.getTimezoneOffset() * 60000));
-    }, null, false, null, null, true);
 
     this.logger.log(`检查计划任务调度初始化完成`)
   }
