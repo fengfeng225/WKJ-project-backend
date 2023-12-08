@@ -13,6 +13,13 @@ import { RequirePermission } from 'src/decorators/require-permission';
 export class CheckPlanController {
   constructor(private readonly checkPlanService: CheckPlanService) {}
 
+  // 初始化测试数据
+  @Get('checkPlan/init')
+  init() {
+    return this.checkPlanService.init()
+  }
+
+
   @ApiOperation({summary:"获取检查计划下发日志"})
   @ApiQuery({name: 'runResult', required: false})
   @ApiQuery({name: 'startTime', required: false})

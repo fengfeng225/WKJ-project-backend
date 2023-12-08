@@ -91,8 +91,8 @@ export class CheckPlanService {
     currentPage = 1
   }): Promise<{ list: CheckPlanRunLog[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
     const query = this.logRepository.createQueryBuilder('log').where('checkPlanId = :id', {id}).orderBy('creatorTime', 'DESC');
-
-    if (runResult !== null) {
+    
+    if (runResult) {
       query.andWhere('runResult = :runResult', {runResult})
     }
 
@@ -120,14 +120,15 @@ export class CheckPlanService {
     })
     if (!checkPlan) throw new NotFoundException('找不到该检查计划')
     
+    checkPlan.enabledMark = 1
+    checkPlan.lastModifyTime = new Date()
+    
+    await this.planRepository.save(checkPlan)
+
     // 开启任务
     const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
     job.start()
     job.fireOnTick()
-
-    checkPlan.enabledMark = 1
-    checkPlan.lastModifyTime = new Date()
-    await this.planRepository.save(checkPlan)
   }
 
   async stopCheck(id: string) {
@@ -289,7 +290,7 @@ export class CheckPlanService {
     const newRecords: CheckRecord[] = []
 
     // 遍历班组
-    classes.forEach(async item => {
+    for (const item of classes) {
       // 将班组本期检查状态改为待检查
       item[currentStatusName] = 0
       // 更新历史检查状态
@@ -303,16 +304,15 @@ export class CheckPlanService {
       })
       if (incompleteCheck.length > 0) item[historyStatusName] = -1
 
-      
       const checkRecord = new CheckRecord()
-      checkRecord.fullName = ''
+      checkRecord.fullName = '123'
       checkRecord.entityCode = entityCode
       checkRecord.checkStatus = 0
       checkRecord.checking = 1
       checkRecord.classId = item.id
       newRecords.push(checkRecord)
-    })
-
+    }
+    
     await this.recordRepository.save(newRecords)
     await this.classRepository.save(classes)
   }
@@ -343,19 +343,24 @@ export class CheckPlanService {
 
     checkPlan.forEach(plan => {
         const job = new CronJob(plan.cron, async () => {
+          const newPlan = await this.planRepository.findOne({
+            where: {
+              id: plan.id
+            }
+          })
           // 任务执行内容
           try {
             // 获取所有班级id
             let classes: MbClass[]
             // 按班级划分
-            if (plan.classType === 'classDivide') {
+            if (newPlan.classType === 'classDivide') {
               classes = await this.classRepository
               .createQueryBuilder('class')
               .getMany()
             }
 
             // 按类别划分
-            if (plan.classType === 'categoryDivide') {
+            if (newPlan.classType === 'categoryDivide') {
 
             }
 
@@ -363,7 +368,7 @@ export class CheckPlanService {
             const checkingRecords = await this.recordRepository
             .createQueryBuilder('record')
             .where('checking = 1')
-            .andWhere('entityCode = :entityCode', {entityCode: plan.entityCode})
+            .andWhere('entityCode = :entityCode', {entityCode: newPlan.entityCode})
             .getMany()
             
             
@@ -377,31 +382,31 @@ export class CheckPlanService {
             }
 
             // 更新班组检查状态
-            await this.updateClassCheck(classes, plan.entityCode)
+            await this.updateClassCheck(classes, newPlan.entityCode)
 
             // 更新计划信息 runCount lastRunTime nextRunTime
-            const job = this.schedulerRegistry.getCronJob(plan.entityCode)
-            plan.runCount = plan.runCount + 1
-            plan.nextRunTime = this.getNextTime(plan.cron)
+            const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
+            newPlan.runCount = newPlan.runCount + 1
+            newPlan.nextRunTime = job.nextDate().toJSDate()
             const lastRunTime = job.lastDate()
-            if (lastRunTime) plan.lastRunTime = new Date(lastRunTime.getTime() - lastRunTime.getTimezoneOffset() * 60000)
+            if (lastRunTime) newPlan.lastRunTime = lastRunTime
             
-            await this.planRepository.save(plan)
+            await this.planRepository.save(newPlan)
 
             // 创建成功日志
             const log = new CheckPlanRunLog()
             log.runResult = 1
             log.description = '下发成功'
-            log.checkPlanId = plan.id
+            log.checkPlanId = newPlan.id
             await this.logRepository.save(log)
 
-            this.logger.log(`下发${plan.fullName}检查计划成功`)
+            this.logger.log(`下发${newPlan.fullName}检查计划成功`)
           } catch (error) {
              // 创建失败日志
             const log = new CheckPlanRunLog()
             log.runResult = 0
             log.description = error.message
-            log.checkPlanId = plan.id
+            log.checkPlanId = newPlan.id
             await this.logRepository.save(log)
           }
         })
@@ -414,5 +419,16 @@ export class CheckPlanService {
     })
 
     this.logger.log(`检查计划任务调度初始化完成`)
+  }
+
+  async init() {
+    const checkPlan = new CheckPlan()
+    checkPlan.fullName = '短期盲板'
+    checkPlan.entityCode = 'shortBill'
+    checkPlan.classType = 'classDivide'
+    checkPlan.cron = '50 * * * * *'
+    checkPlan.fullName = '短期盲板'
+    await this.planRepository.save(checkPlan)
+    return 'done'
   }
 }
