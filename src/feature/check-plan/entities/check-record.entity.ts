@@ -52,7 +52,7 @@ export class CheckRecord {
   @Column({
     type: 'int',
     default: 1,
-    comment: '当前周期的检查，0-过去，1-当前，2-停止'
+    comment: '当前周期的检查，0-过去，1-当前'
   })
   checking: number;
 

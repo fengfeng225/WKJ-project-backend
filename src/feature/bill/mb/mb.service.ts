@@ -342,7 +342,9 @@ export class MbService {
 
     if (isExist) throw new ConflictException('名称重复，请重试')
 
-    await this.classRepository.save(updateClassDto)
+    const entity = this.classRepository.create(updateClassDto)
+    entity.lastModifyTime = new Date()
+    await this.classRepository.save(entity)
     return null
   }
 
@@ -360,6 +362,7 @@ export class MbService {
     if (!currentClass) throw new NotFoundException('没有找到当前班组')
     if (currentClass.mbShorts.length || currentClass.mbLongs.length || currentClass.mbDisassemblys.length) throw new ForbiddenException('还有相关联的数据，不允许删除！')
 
+    currentClass.lastModifyTime = new Date()
     await this.classRepository.softRemove(currentClass)
     return null
   }

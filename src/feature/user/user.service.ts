@@ -296,10 +296,6 @@ export class UserService {
     user1.account = 'by_one_class'
     user1.userName = '白油一班'
 
-    const user2 = new User()
-    user2.account = 'by_two_class'
-    user2.userName = '白油二班'
-
     // 角色
     const role1 = new Role()
     role1.fullName = '角色1'
@@ -308,10 +304,6 @@ export class UserService {
     const role2 = new Role()
     role2.fullName = '角色2'
     role2.entityCode = 'role2'
-
-    const role3 = new Role()
-    role3.fullName = '角色3'
-    role3.entityCode = 'role3'
 
     // 菜单
     const menu1 = new Menu()
@@ -430,10 +422,6 @@ export class UserService {
     button2.fullName = 'Edit'
     button2.entityCode = 'btn_edit'
 
-    const button3 = new Button_permission()
-    button3.fullName = 'Add'
-    button3.entityCode = 'btn_add'
-
     // 列
     const column1 = new Column_permission()
     column1.fullName = 'Name'
@@ -446,23 +434,18 @@ export class UserService {
     // 菜单绑定按钮和列
     menu8.columns = [column1, column2]
     menu8.buttons = [button1, button2]
-    menu6.buttons = [button3]
 
     // 角色绑定权限
-    role1.menus = [menu7, menu8, menu3, menu4, menu5, menu6, menu14, menu15]
-    role2.menus = [menu3, menu4, menu5, menu6]
-    role3.menus = [menu8, menu1, menu2, menu9, menu10, menu11, menu12, menu13]
+    role1.menus = [menu7, menu8, menu1, menu2, menu3, menu4, menu5, menu6, menu14, menu15]
+    role2.menus = [menu9, menu10, menu11, menu12, menu13]
 
-    role1.buttons = [button1]
-    role2.buttons = [button3]
-    role3.buttons = [button2]
+    role1.buttons = [button1, button2]
 
     role1.columns = [column1, column2]
 
     // 用户绑定角色
     user1.roles = [role1, role2]
-    user2.roles = [role2, role3]
 
-    await this.userRepository.save([user0, user1, user2])
+    await this.userRepository.save([user0, user1])
   }
 }

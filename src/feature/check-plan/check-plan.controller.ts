@@ -3,6 +3,7 @@ import { CheckPlanService } from './check-plan.service';
 import { UpdateCheckPlanDto } from './dto/update-check-plan.dto';
 import { FindLogDto } from './dto/find-log.dto';
 import { CheckInfoDto } from './dto/check-info.dto';
+import { FixRecordDto } from './dto/fix-record.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
@@ -61,14 +62,14 @@ export class CheckPlanController {
   }
 
   @ApiOperation({summary:"获取检查记录"})
-  @Get('bill/checkRecords/:id')
-  getRecords(@Param('id') id: string) {
-    return this.checkPlanService.getRecords(id);
+  @Get('bill/:id/checkRecords/:type')
+  getRecords(@Param('id') id: string, @Param('type') type: string) {
+    return this.checkPlanService.getRecords(id, type);
   }
 
   @ApiOperation({summary:"处理检查异常"})
   @Put('bill/checkRecord/fix/:id')
-  fixRecord(@Param('id') id: string) {
-    return this.checkPlanService.fixRecord(id);
+  fixRecord(@Param('id') id: string, @Body() fixRecordDto: FixRecordDto) {
+    return this.checkPlanService.fixRecord(id, fixRecordDto);
   }
 }

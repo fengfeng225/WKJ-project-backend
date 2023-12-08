@@ -33,28 +33,28 @@ export class MbClass {
     default: 0,
     comment: '当前检查(短期)'
   })
-  shortCheckingStatus: number;
+  shortBillCheckingStatus: number;
 
   @Column({
     type: 'int',
     default: 1,
     comment: '历史检查(短期)'
   })
-  shortCheckedStatus: number;
+  shortBillCheckedStatus: number;
 
   @Column({
     type: 'int',
     default: 0,
     comment: '当前检查(长期)'
   })
-  longCheckingStatus: number;
+  longBillCheckingStatus: number;
 
   @Column({
     type: 'int',
     default: 1,
     comment: '历史检查(长期)'
   })
-  longCheckedStatus: number;
+  longBillCheckedStatus: number;
 
   @Column({
     type: 'int',
@@ -69,7 +69,7 @@ export class MbClass {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
   creatorTime: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
   lastModifyTime: Date;
 
   @OneToMany(() => MbShort, (mbShort) => mbShort.class)
