@@ -2,7 +2,7 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, Not  } from 'typeorm';
+import { Repository, DataSource, EntityManager, Not  } from 'typeorm';
 import { Menu } from './entities/menu.entity';
 import { Button_permission } from '../button/entities/button_permission.entity';
 import { Column_permission } from '../column/entities/column_permission.entity';
@@ -156,14 +156,14 @@ export class MenuService {
   }
 
   // 删除关联的button
-  private async deleteAssociatedButtons(buttons: Button_permission[], manager): Promise<void> {    
+  private async deleteAssociatedButtons(buttons: Button_permission[], manager: EntityManager): Promise<void> {    
     for (const button of buttons) {
       await manager.remove(button);
     }
   }
 
   // 删除关联的column
-  private async deleteAssociatedColumns(columns: Column_permission[], manager): Promise<void> {
+  private async deleteAssociatedColumns(columns: Column_permission[], manager: EntityManager): Promise<void> {
     for (const column of columns) {
       await manager.remove(column);
     }

@@ -1,9 +1,9 @@
 import { ConflictException, NotFoundException, Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not } from 'typeorm';
+import { Repository, DataSource, EntityManager, Not } from 'typeorm';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob, CronTime } from 'cron';
-import cronParser from 'cron-parser';
+import * as cronParser from 'cron-parser';
 import * as moment from 'moment';
 import { UpdateCheckPlanDto } from './dto/update-check-plan.dto';
 import { FixRecordDto } from './dto/fix-record.dto';
@@ -23,7 +23,8 @@ export class CheckPlanService {
     private readonly recordRepository:Repository<CheckRecord>,
     @InjectRepository(MbClass)
     private readonly classRepository:Repository<MbClass>,
-    private schedulerRegistry: SchedulerRegistry
+    private schedulerRegistry: SchedulerRegistry,
+    private dataSource: DataSource
   ){}
 
   private logger: Logger = new Logger('ScheduledTask')
@@ -72,15 +73,15 @@ export class CheckPlanService {
 
     const oldCron = checkPlan.cron
     const newCron = updateCheckPlanDto.cron
+    const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
     if (oldCron !== newCron) {
-      const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
       const cronTime = new CronTime(newCron)
-      job.context.execute = 'manual'
       job.setTime(cronTime)
     }
 
     const entity = this.planRepository.create(updateCheckPlanDto)
     entity.lastModifyTime = new Date()
+    if (checkPlan.enabledMark === 1) entity.nextRunTime = job.nextDate().toJSDate()
     await this.planRepository.save(entity)
     return null
   }
@@ -142,31 +143,16 @@ export class CheckPlanService {
     })
     if (!checkPlan) throw new NotFoundException('找不到该检查计划')
 
-    // 修改计划为停用
-    checkPlan.enabledMark = 0
-    checkPlan.nextRunTime = null
-    checkPlan.lastModifyTime = new Date()
-    await this.planRepository.save(checkPlan)
-
     // 停止任务
     const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
     job.stop()
 
-    // 获取进行中的记录, 并结束进行中的检查
-    const records = await this.recordRepository.find({
-      where: {
-        checking: 1,
-        entityCode: checkPlan.entityCode
-      }
-    })
+    // 修改计划为停用
+    checkPlan.enabledMark = 0
+    checkPlan.nextRunTime = null
+    checkPlan.lastModifyTime = new Date()
 
-    records.forEach(record => {
-      if (record.checkStatus === 0) record.checkStatus = -1
-      record.checking = 0
-    })
-    await this.recordRepository.save(records)
-
-    // 更新班组检查状态
+    // 获取班组
     let classes: MbClass[]
 
     if (checkPlan.classType === 'classDivide') {
@@ -182,23 +168,43 @@ export class CheckPlanService {
     const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
     const historyStatusName = checkPlan.entityCode + 'CheckedStatus'
 
-    for (const item of classes) {
-      // 将班组本期检查状态改为空
-      item[currentStatusName] = -1
-      // 更新历史检查状态
-      const incompleteCheck = await this.recordRepository.find({
+    // 开启事务
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(CheckPlan, checkPlan)
+      
+      // 获取进行中的记录, 并结束进行中的检查
+      const records = await this.recordRepository.find({
         where: {
-          checking: 0,
-          checkStatus: -1,
-          classId: item.id,
+          checking: 1,
           entityCode: checkPlan.entityCode
         }
       })
-      if (incompleteCheck.length > 0) item[historyStatusName] = -1
-    }
 
-    await this.classRepository.save(classes)
+      records.forEach(record => {
+        if (record.checkStatus === 0) record.checkStatus = -1
+        record.checking = 0
+      })
+      await transactionalEntityManager.save(CheckRecord, records)
 
+      // 更新班组检查状态
+      for (const item of classes) {
+        // 将班组本期检查状态改为空
+        item[currentStatusName] = -1
+        // 更新历史检查状态
+        const incompleteCheck = await this.recordRepository.find({
+          where: {
+            checking: 0,
+            checkStatus: -1,
+            classId: item.id,
+            entityCode: checkPlan.entityCode
+          }
+        })
+        if (incompleteCheck.length > 0) item[historyStatusName] = -1
+      }
+
+      await transactionalEntityManager.save(MbClass, classes)
+    })
+    
     return null
   }
 
@@ -222,16 +228,18 @@ export class CheckPlanService {
       item.checkStatus = 1
       item.checkedTime = new Date()
     })
-    await this.recordRepository.save(checkRecords)
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.save(CheckRecord, checkRecords)
 
-    // 将对应班组当前检查状态改为完成
-    const classes = await this.classRepository
-    .createQueryBuilder('class')
-    .where('id IN (:...classIds)', {classIds})
-    .getMany()
-    const currentStatusName = type + 'CheckingStatus'
-    classes.forEach(item => item[currentStatusName] = 1)
-    await this.classRepository.save(classes)
+      // 将对应班组当前检查状态改为完成
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .where('id IN (:...classIds)', {classIds})
+      .getMany()
+      const currentStatusName = type + 'CheckingStatus'
+      classes.forEach(item => item[currentStatusName] = 1)
+      await transactionalEntityManager.save(MbClass, classes)
+    })
 
     return null
   }
@@ -263,36 +271,38 @@ export class CheckPlanService {
     if (!record) throw new NotFoundException('没有找到该记录')
     if (record.checkStatus !== -1) throw new ForbiddenException('禁止修改！')
 
-    // 修改历史检查记录
-    record.checkStatus = 2
-    record.description = fixRecordDto.description
-    await this.recordRepository.save(record)
-    
-    // 更新对应班组历史检查状态
-    const incompleteCheck = await this.recordRepository.find({
-      where: {
-        checking: 0,
-        checkStatus: -1,
-        classId: record.classId,
-        entityCode: record.entityCode
-      }
-    })
-    if (incompleteCheck.length === 0) {
-      const currentClass = await this.classRepository.findOne({
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      // 修改历史检查记录
+      record.checkStatus = 2
+      record.description = fixRecordDto.description
+      await transactionalEntityManager.save(CheckRecord, record)
+
+      // 更新对应班组历史检查状态
+      const incompleteCheck = await this.recordRepository.find({
         where: {
-          id: record.classId
+          checking: 0,
+          checkStatus: -1,
+          classId: record.classId,
+          entityCode: record.entityCode
         }
       })
-      currentClass[record.entityCode + 'CheckedStatus'] = 1
-      await this.classRepository.save(currentClass)
-    }
+      if (incompleteCheck.length === 0) {
+        const currentClass = await this.classRepository.findOne({
+          where: {
+            id: record.classId
+          }
+        })
+        currentClass[record.entityCode + 'CheckedStatus'] = 1
+        await transactionalEntityManager.save(MbClass, currentClass)
+      }
+    })
 
     return null
   }
 
-  async updateClassCheck(classes: MbClass[], entityCode: string, cron: string) {
-    const currentStatusName = entityCode + 'CheckingStatus'
-    const historyStatusName = entityCode + 'CheckedStatus'
+  async updateClassCheck(classes: MbClass[], plan: CheckPlan, manager: EntityManager) {
+    const currentStatusName = plan.entityCode + 'CheckingStatus'
+    const historyStatusName = plan.entityCode + 'CheckedStatus'
 
     // 添加新一轮记录
     const newRecords: CheckRecord[] = []
@@ -307,22 +317,23 @@ export class CheckPlanService {
           checking: 0,
           checkStatus: -1,
           classId: item.id,
-          entityCode
+          entityCode: plan.entityCode
         }
       })
       if (incompleteCheck.length > 0) item[historyStatusName] = -1
 
       const checkRecord = new CheckRecord()
-      checkRecord.fullName = this.getCheckTaskName(cron)
-      checkRecord.entityCode = entityCode
+      checkRecord.fullName = this.getCheckTaskName(plan.cron)
+      checkRecord.type = plan.fullName
+      checkRecord.entityCode = plan.entityCode
       checkRecord.checkStatus = 0
       checkRecord.checking = 1
       checkRecord.classId = item.id
       newRecords.push(checkRecord)
     }
     
-    await this.recordRepository.save(newRecords)
-    await this.classRepository.save(classes)
+    await manager.save(newRecords)
+    await manager.save(classes)
   }
 
   private getCheckTaskName(cron: string) {
@@ -351,15 +362,15 @@ export class CheckPlanService {
   }
 
   private getCycle(cron: string) {
-    // 每月18日 0 0 0 18 * ?   每年4, 10月  0 0 0 1 4,10 ?
+    // 每月18日 0 0 0 18 * *   每年4, 10月  0 0 0 1 4,10 *
     const cronToArray = cron.split(' ')
 
     if (cronToArray[0].includes('*') || cronToArray[1].includes('*') || cronToArray[2].includes('*')) return 'lessThanOneDay'
-    if (cronToArray[3].includes('*')) return 'day'
-    if (cronToArray[3].includes('?') && cronToArray[4].includes('*') && !cronToArray[5].includes('?') && !cronToArray[5].includes('*')) return 'week'
+    if (cronToArray[3].includes('*') && cronToArray[4].includes('*') && cronToArray[5].includes('*')) return 'day'
+    if (cronToArray[3].includes('*') && cronToArray[4].includes('*') && !cronToArray[5].includes('*')) return 'week'
     if (cronToArray[4].includes('*')) return 'month'
     if (!cronToArray[6] || cronToArray[6].includes('*')) return 'year'
-    return 'unknown'
+    return 'other'
   }
 
   private getNextTime(cronExpression: string): Date | null {
@@ -419,36 +430,37 @@ export class CheckPlanService {
             .andWhere('entityCode = :entityCode', {entityCode: newPlan.entityCode})
             .getMany()
             
-            
-            if (checkingRecords.length > 0) {
-              // 将进行中的checking改为0
-              checkingRecords.forEach(record => {
-                if (record.checkStatus === 0) record.checkStatus = -1
-                record.checking = 0
-              })
-              await this.recordRepository.save(checkingRecords)
-            }
+            // 多表联动，开启事务
+            await this.dataSource.transaction(async (transactionalEntityManager) => {
+              if (checkingRecords.length > 0) {
+                // 将进行中的checking改为0
+                checkingRecords.forEach(record => {
+                  if (record.checkStatus === 0) record.checkStatus = -1
+                  record.checking = 0
+                })
+                await transactionalEntityManager.save(CheckRecord, checkingRecords)
+              }
 
-            // 更新班组检查状态
-            await this.updateClassCheck(classes, newPlan.entityCode, newPlan.cron)
+              // 更新班组检查状态
+              await this.updateClassCheck(classes, newPlan, transactionalEntityManager)
 
-            // 更新计划信息 runCount lastRunTime nextRunTime
-            const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
-            newPlan.runCount = newPlan.runCount + 1
-            newPlan.nextRunTime = job.nextDate().toJSDate()
-            newPlan.lastRunTime = job.lastDate()
-            
-            await this.planRepository.save(newPlan)
+              const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
+               // 改为自动执行标识
+              job.context.execute = 'automatic'
+              // 更新计划信息 runCount lastRunTime nextRunTime
+              newPlan.runCount = newPlan.runCount + 1
+              newPlan.nextRunTime = job.nextDate().toJSDate()
+              newPlan.lastRunTime = job.lastDate()
+              
+              await transactionalEntityManager.save(CheckPlan, newPlan)
 
-            // 改为自动执行标识
-            job.context.execute = 'automatic'
-
-            // 创建成功日志
-            const log = new CheckPlanRunLog()
-            log.runResult = 1
-            log.description = '下发成功'
-            log.checkPlanId = newPlan.id
-            await this.logRepository.save(log)
+              // 创建成功日志
+              const log = new CheckPlanRunLog()
+              log.runResult = 1
+              log.description = '下发成功'
+              log.checkPlanId = newPlan.id
+              await transactionalEntityManager.save(CheckPlanRunLog, log)
+            })
 
             this.logger.log(`下发${newPlan.fullName}检查计划成功`)
           } catch (error) {

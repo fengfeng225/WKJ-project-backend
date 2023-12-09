@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, DataSource } from 'typeorm';
+import { Repository, Not, DataSource, EntityManager } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
@@ -433,7 +433,7 @@ export class MbService {
   }
 
   // 添加拆装明细
-  async addDisassembly(createDisassemblyDto: CreateDisassemblyDto, manager) {
+  async addDisassembly(createDisassemblyDto: CreateDisassemblyDto, manager: EntityManager) {
     const entity = this.disassemblyRepository.create(createDisassemblyDto)
     await manager.save(entity)
   }

@@ -20,9 +20,15 @@ export class CheckRecord {
 
   @Column({
     length: 50,
-    comment: '台账类别' // 待更新 例如 1月检查
+    comment: '名称'
   })
   fullName: string;
+
+  @Column({
+    length: 50,
+    comment: '台账类别'
+  })
+  type: string;
 
   @Column({
     length: 50,
