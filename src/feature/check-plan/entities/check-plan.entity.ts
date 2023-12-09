@@ -79,7 +79,7 @@ export class CheckPlan {
 
   @Column({
     type: 'int',
-    default: 1,
+    default: 0,
     comment: '启用状态'
   })
   enabledMark: number;
