@@ -5,6 +5,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { FindRoleAuthorizeDto } from './dto/find-roleAuthorize.dto';
 import { UpdateRoleAuthorizeDto } from './dto/update-roleAuthorize.dto';
+import { UpdateClassAuthorizeDto } from './dto/update-classAuthorize.dto';
 import { Role } from './entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
 import { Button_permission } from '../button/entities/button_permission.entity';
@@ -213,6 +214,16 @@ export class RoleService {
     await this.roleRepository.save(role)
 
     return null
+  }
+
+  // 获取角色拥有的班组权限
+  async findClassAuthorize(id: string) {
+
+  }
+
+  // 更新角色拥有的班组权限
+  async updateClassAuthorize(id: string, updateClassAuthorizeDto: UpdateClassAuthorizeDto) {
+    
   }
 
   private mergeButtonColumnAndMenu(menus, children: Button_permission[] | Column_permission[]): Menu[] {
