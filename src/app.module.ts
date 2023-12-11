@@ -17,6 +17,7 @@ import { MbModule } from './feature/bill/mb/mb.module';
 import { DictionaryModule } from './feature/system-data/dictionary/dictionary.module';
 import { HomeModule } from './feature/home/home.module';
 import { CheckPlanModule } from './feature/check-plan/check-plan.module';
+import { ClassModule } from './feature/bill/class/class.module';
 import envConfig from 'config/envConfig';
 
 @Module({
@@ -50,7 +51,8 @@ import envConfig from 'config/envConfig';
     MbModule,
     DictionaryModule,
     HomeModule,
-    CheckPlanModule
+    CheckPlanModule,
+    ClassModule
   ],
   controllers: [AppController],
   providers: [

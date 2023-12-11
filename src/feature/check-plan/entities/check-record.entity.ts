@@ -6,7 +6,7 @@ import {
   BeforeInsert
 } from 'typeorm';
 import util from 'src/utils/util';
-import { MbClass } from '../../bill/mb/entities/mb-class.entity';
+import { BillClass } from '../../bill/class/entities/class.entity';
 
 @Entity()
 export class CheckRecord {
@@ -45,7 +45,7 @@ export class CheckRecord {
 
   @Column({
     type: 'int',
-    comment: '检查状态, -1-未完成，0-待检查，1-完成，2-未完成但已处理'
+    comment: '检查状态' // -1 - 未完成，0 - 待检查，1 - 完成，2 - 未完成但已处理
   })
   checkStatus: number;
 
@@ -58,7 +58,7 @@ export class CheckRecord {
   @Column({
     type: 'int',
     default: 1,
-    comment: '当前周期的检查，0-过去，1-当前'
+    comment: '当前周期的检查' // 0 - 过去，1 - 当前
   })
   checking: number;
 
@@ -69,8 +69,8 @@ export class CheckRecord {
   })
   inspector: string;
 
-  @ManyToOne(() => MbClass, mbClass => mbClass.records)
-  class: MbClass;
+  @ManyToOne(() => BillClass, billClass => billClass.records)
+  class: BillClass;
 
   @Column({comment: '所属班组ID'})
   classId: string;

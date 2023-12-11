@@ -4,16 +4,16 @@ import { CheckPlanService } from './check-plan.service';
 import { CheckPlanController } from './check-plan.controller';
 import { CheckPlanRunLog } from './entities/check-plan-run-log.entity';
 import { CheckPlan } from './entities/check-plan.entity';
-import { CheckRecord } from './entities/check-record.entity';
-import { MbModule } from '../bill/mb/mb.module';
+import { ClassModule } from '../bill/class/class.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CheckPlanRunLog, CheckPlan, CheckRecord]),
-    MbModule
+    TypeOrmModule.forFeature([CheckPlanRunLog, CheckPlan]),
+    ClassModule
   ],
   controllers: [CheckPlanController],
   providers: [CheckPlanService],
+  exports: [TypeOrmModule]
 })
 export class CheckPlanModule implements OnModuleInit {
   constructor(private checkPlanService: CheckPlanService) {}

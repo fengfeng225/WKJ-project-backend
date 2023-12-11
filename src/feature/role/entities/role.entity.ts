@@ -11,6 +11,7 @@ import { User } from '../../user/entities/user.entity';
 import { Menu } from '../../menu/entities/menu.entity';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
 import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
+import { BillClass } from 'src/feature/bill/class/entities/class.entity';
 
 @Entity()
 export class Role {
@@ -48,7 +49,7 @@ export class Role {
   })
   sortCode: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '创建时间' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
   creatorTime: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', onUpdate: 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })
@@ -77,4 +78,10 @@ export class Role {
     name: 'role_column_relation'
   })
   columns: Column_permission[];
+
+  @ManyToMany(() => BillClass, {cascade: true})
+  @JoinTable({
+    name: 'role_class_relation'
+  })
+  classes: BillClass[];
 }

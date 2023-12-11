@@ -7,7 +7,7 @@ import {
   DeleteDateColumn
 } from 'typeorm';
 import util from 'src/utils/util';
-import { MbClass } from './mb-class.entity';
+import { BillClass } from '../../class/entities/class.entity';
 
 @Entity()
 export class MbLong {
@@ -112,6 +112,6 @@ export class MbLong {
   @Column({comment: '所属班组ID'})
   classId: string;
 
-  @ManyToOne(() => MbClass, {cascade: true})
-  class: MbClass;
+  @ManyToOne(() => BillClass, {cascade: true})
+  class: BillClass;
 }

@@ -40,12 +40,13 @@ export class AuthService {
     
     const userInfo = await this.userService.getUserInfoForInit(userId);
     
-    const { menuList = [], permissionList = [] } = await this.userService.getPermissionListByUserId(userId, account)
+    const { menuList = [], permissionList = [], classList = [] } = await this.userService.getPermissionListByUserId(userId, account)
     
     return {
       userInfo,
       menuList,
-      permissionList
+      permissionList,
+      classList
     }
   }
 }

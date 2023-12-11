@@ -7,6 +7,7 @@ import { Role } from '../role/entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
 import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
 import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
+import { BillClass } from '../bill/class/entities/class.entity';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
 import { CreateUserDto } from './dto/create-user-dto';
@@ -22,6 +23,8 @@ export class UserService {
     private readonly menuRepository:Repository<Menu>,
     @InjectRepository(Role)
     private readonly roleRepository:Repository<Role>,
+    @InjectRepository(BillClass)
+    private readonly classRepository:Repository<BillClass>,
   ){}
 
   private buildMenuTree(flatMenus: Menu[]): Menu[] {
@@ -217,7 +220,7 @@ export class UserService {
 
   // 获取用户权限（返回给前端）
   async getPermissionListByUserId(userId: string, account: string) {
-    let menus, permissionList
+    let menus, permissionList, classList
 
     if (account === 'admin') {
       menus = await this.menuRepository
@@ -228,7 +231,6 @@ export class UserService {
       .orderBy('menu.sortCode')
       .addOrderBy('children.sortCode')
       .getMany();
-      
 
       permissionList = await this.menuRepository
       .createQueryBuilder('menu')
@@ -237,6 +239,11 @@ export class UserService {
       .leftJoinAndSelect('menu.columns', 'column')
       .where('menu.enabledMark = 1')
       .getMany();
+
+      classList = await this.classRepository
+      .createQueryBuilder('class')
+      .select(['class.id', 'class.fullName'])
+      .getMany()
     } else {
       const flatMenus = await this.menuRepository
       .createQueryBuilder('menu')
@@ -261,11 +268,20 @@ export class UserService {
       .where('urr.userId = :userId', { userId })
       .andWhere('menu.enabledMark = 1')
       .getMany();
+
+      classList = await this.classRepository
+      .createQueryBuilder('class')
+      .select(['class.id', 'class.fullName'])
+      .innerJoin('role_class_relation', 'rcr', 'rcr.billClassId = class.id')
+      .innerJoin('user_role_relation', 'urr', 'urr.roleId = rcr.roleId')
+      .where('urr.userId = :userId', { userId })
+      .getMany()
     }
     
     return {
       menuList: menus,
-      permissionList: permissionList
+      permissionList: permissionList,
+      classList
     }
     
   }

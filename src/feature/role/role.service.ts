@@ -10,6 +10,7 @@ import { Role } from './entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
 import { Button_permission } from '../button/entities/button_permission.entity';
 import { Column_permission } from '../column/entities/column_permission.entity';
+import { BillClass } from '../bill/class/entities/class.entity';
 
 @Injectable()
 export class RoleService {
@@ -21,7 +22,9 @@ export class RoleService {
     @InjectRepository(Button_permission)
     private readonly buttonRepository:Repository<Button_permission>,
     @InjectRepository(Column_permission)
-    private readonly columnRepository:Repository<Column_permission>
+    private readonly columnRepository:Repository<Column_permission>,
+    @InjectRepository(BillClass)
+    private readonly classRepository:Repository<BillClass>
   ){}
 
   async create(createRoleDto: CreateRoleDto) {
@@ -217,13 +220,49 @@ export class RoleService {
   }
 
   // 获取角色拥有的班组权限
-  async findClassAuthorize(id: string) {
+  async findClassAuthorize(roleId: string) {
+    const list = await this.classRepository
+    .createQueryBuilder('class')
+    .leftJoinAndSelect('class.children', 'children')
+    .select(['class.id', 'class.fullName', 'children.id', 'children.fullName'])
+    .where('class.parentId IS NULL')
+    .orderBy('class.sortCode')
+    .addOrderBy('children.sortCode')
+    .getMany()
 
+    const ids = await this.classRepository
+    .createQueryBuilder('class')
+    .select('class.id')
+    .innerJoin('role_class_relation', 'rcr', 'rcr.billClassId = class.id')
+    .where('rcr.roleId = :roleId', {roleId})
+    .getMany()
+
+    return {
+      list,
+      ids: ids.map(item => item.id)
+    }
   }
 
   // 更新角色拥有的班组权限
   async updateClassAuthorize(id: string, updateClassAuthorizeDto: UpdateClassAuthorizeDto) {
-    
+    const { classIds } = updateClassAuthorizeDto
+    const role = await this.roleRepository.findOne({
+      where: {
+        id
+      }
+    })
+
+    if (!role) throw new NotFoundException('没有找到角色信息');
+
+    const newClasses = classIds.length ? await this.classRepository
+    .createQueryBuilder('class')
+    .where('class.id in (:...classIds)', {classIds})
+    .getMany() : []
+
+    role.classes = newClasses
+    await this.roleRepository.save(role)
+
+    return null
   }
 
   private mergeButtonColumnAndMenu(menus, children: Button_permission[] | Column_permission[]): Menu[] {

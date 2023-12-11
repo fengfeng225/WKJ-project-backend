@@ -4,24 +4,22 @@ import { Repository, Not, DataSource, EntityManager } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
-import { CreateClassDto } from './dto/create-class.dto';
-import { UpdateClassDto } from './dto/update-class.dto';
-import { MbClass } from './entities/mb-class.entity';
 import { MbShort } from './entities/mb-short.entity';
 import { MbLong } from './entities/mb-long.entity';
 import { MbDisassembly } from './entities/mb-disassembly.entity';
+import { BillClass } from '../class/entities/class.entity';
 
 @Injectable()
 export class MbService {
   constructor(
-    @InjectRepository(MbClass)
-    private readonly classRepository:Repository<MbClass>,
     @InjectRepository(MbShort)
     private readonly shortRepository:Repository<MbShort>,
     @InjectRepository(MbLong)
     private readonly longRepository:Repository<MbLong>,
     @InjectRepository(MbDisassembly)
     private readonly disassemblyRepository:Repository<MbDisassembly>,
+    @InjectRepository(BillClass)
+    private readonly classRepository:Repository<BillClass>,
     private dataSource: DataSource
   ){}
 
@@ -62,8 +60,15 @@ export class MbService {
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
     }
-    if (classId && +classId !== -1) {      
-      query.andWhere(`classId = :classId`, { classId });
+    if (classId && +classId !== -1) {
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .select('class.id')
+      .where('class.id = :classId OR class.parentId = :classId', {classId})
+      .getMany()
+      const classIds = classes.map(item => item.id)
+
+      query.andWhere(`classId IN (:...classIds)`, { classIds });
     }
     if (queryJson) {
       query.andWhere(`name IN (:...devices)`, { devices: JSON.parse(queryJson) });
@@ -199,8 +204,15 @@ export class MbService {
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
     }
-    if (classId && +classId !== -1) {      
-      query.andWhere(`classId = :classId`, { classId });
+    if (classId && +classId !== -1) {
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .select('class.id')
+      .where('class.id = :classId OR class.parentId = :classId', {classId})
+      .getMany()
+      const classIds = classes.map(item => item.id)
+
+      query.andWhere(`classId IN (:...classIds)`, { classIds });
     }
     if (queryJson) {
       query.andWhere(`name IN (:...devices)`, { devices: JSON.parse(queryJson) });
@@ -298,96 +310,6 @@ export class MbService {
     return null
   }
 
-
-  // 获取班组
-  async findAllClass(): Promise<{list: MbClass[]}> {
-    const list =  await this.classRepository
-    .createQueryBuilder('class')
-    .select(['class.id', 'class.fullName'])
-    .orderBy('sortCode')
-    .getMany()
-
-    return {
-      list
-    }
-  }
-
-  async createClass(createClassDto: CreateClassDto) {
-    const isExist = await this.classRepository.findOne({
-      where: {
-        fullName: createClassDto.fullName
-      }
-    })
-
-    if (isExist) throw new ConflictException('名称重复，请重试')
-
-    const entity = this.classRepository.create(createClassDto) 
-    await this.classRepository.save(entity)
-    return null
-  }
-
-  async updateClass(id: string, updateClassDto: UpdateClassDto) {
-    const currentClass = await this.classRepository.findOne({
-      where: {
-        id
-      }
-    })
-    if (!currentClass) throw new NotFoundException('没有找到当前班组')
-
-    const isExist = await this.classRepository.findOne({
-      where: {
-        fullName: updateClassDto.fullName, id: Not(updateClassDto.id)
-      }
-    })
-
-    if (isExist) throw new ConflictException('名称重复，请重试')
-
-    const entity = this.classRepository.create(updateClassDto)
-    entity.lastModifyTime = new Date()
-    await this.classRepository.save(entity)
-    return null
-  }
-
-  async deleteClass(id: string) {
-    const currentClass = await this.classRepository.findOne({
-      where: {
-        id
-      },
-      relations: {
-        mbShorts: true,
-        mbLongs: true,
-        mbDisassemblys: true
-      }
-    })
-    if (!currentClass) throw new NotFoundException('没有找到当前班组')
-    if (currentClass.mbShorts.length || currentClass.mbLongs.length || currentClass.mbDisassemblys.length) throw new ForbiddenException('还有相关联的数据，不允许删除！')
-
-    currentClass.lastModifyTime = new Date()
-    await this.classRepository.softRemove(currentClass)
-    return null
-  }
-
-  async findOneClass(id: string) {
-    const currentClass = await this.classRepository.findOne({
-      where: {
-        id
-      }
-    })
-    if (!currentClass) throw new NotFoundException('没有获取到当前班组信息')
-    return currentClass
-  }
-
-  async findAllClassWithCheckStatus() {
-    const list = await this.classRepository.find({
-      order: {
-        sortCode: 'ASC'
-      }
-    })
-    return {
-      list
-    }
-  }
-
   // 获取拆装明细
   async findDisassembleDetails({
     keyword,
@@ -400,8 +322,15 @@ export class MbService {
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
     }
-    if (classId && +classId !== -1) {      
-      query.andWhere(`classId = :classId`, { classId });
+    if (classId && +classId !== -1) {    
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .select('class.id')
+      .where('class.id = :classId OR class.parentId = :classId', {classId})
+      .getMany()
+      const classIds = classes.map(item => item.id)
+
+      query.andWhere(`classId IN (:...classIds)`, { classIds });
     }
 
     const total = await query.getCount();
@@ -441,34 +370,5 @@ export class MbService {
   // 左边补零
   private leftFillZero(val: string, count: number): string {
     return new Array(count - val.length + 1).join('0') + val
-  }
-
-  // 初始测试数据
-  async initClass() {
-    const class1 = new MbClass()
-    class1.fullName = '白油一班'
-
-    const class2 = new MbClass()
-    class2.fullName = '白油二班'
-
-    const class3 = new MbClass()
-    class3.fullName = '白油三班'
-
-    const class4 = new MbClass()
-    class4.fullName = '白油四班'
-
-    const class5 = new MbClass()
-    class5.fullName = '高加一班'
-
-    const class6 = new MbClass()
-    class6.fullName = '高加二班'
-
-    const class7 = new MbClass()
-    class7.fullName = '高加三班'
-
-    const class8 = new MbClass()
-    class8.fullName = '高加四班'
-
-    await this.classRepository.save([class1, class2, class3, class4, class5, class6, class7, class8, ])
   }
 }
