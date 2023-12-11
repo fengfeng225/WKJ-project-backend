@@ -1,14 +1,14 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CheckInfoDto {
   @ApiProperty({
-    example:"[]",
+    example:"string",
     description:"班组id"
   })
   @IsNotEmpty()
-  @IsArray()
-  classIds: Array<string>;
+  @IsString()
+  classIds: string;
 
   @ApiProperty({
     example:"string",

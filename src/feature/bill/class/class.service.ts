@@ -167,6 +167,7 @@ export class ClassService {
     inspector,
     type
   }) {
+    classIds = classIds.split(',')
     const checkRecords = await this.recordRepository
     .createQueryBuilder('record')
     .where('checking = 1')
@@ -174,7 +175,7 @@ export class ClassService {
     .andWhere('classId IN (:...classIds)', {classIds})
     .getMany()
 
-    if (!checkRecords) throw new NotFoundException('没有找到待检查项')
+    if (!checkRecords.length) throw new NotFoundException('没有找到待检查项')
 
     // 将当前检查记录改为完成状态
     checkRecords.forEach(item => {
