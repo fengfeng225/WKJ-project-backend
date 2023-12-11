@@ -17,6 +17,27 @@ export class ClassService {
     private dataSource: DataSource
   ){}
   
+  private buildClassTree(flatClasses: BillClass[]): BillClass[] {
+    const classMap = new Map<string, BillClass>();
+    const result: BillClass[] = [];
+
+    for (const item of flatClasses) {
+      classMap.set(item.id, item);
+    }
+
+    for (const item of flatClasses) {
+      if (item.parentId && classMap.has(item.parentId)) {
+        const parent = classMap.get(item.parentId);
+        if (!parent.children) parent.children = [];
+        parent.children.push(item);
+      } else {
+        result.push(item);
+      }
+    }
+
+    return result;
+  }
+
   // classBasic
   async findAllClass(): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
@@ -135,14 +156,18 @@ export class ClassService {
     return currentClass
   }
 
-  async findAllClassWithCheckStatus(): Promise<{list: BillClass[]}> {
-    const list = await this.classRepository
-    .createQueryBuilder('class')
-    .leftJoinAndSelect('class.children', 'children')
-    .where('class.parentId IS NULL')
-    .orderBy('class.sortCode')
-    .addOrderBy('children.sortCode')
-    .getMany()
+  async findAllClassWithCheckStatus(keyword: string): Promise<{list: BillClass[]}> {
+    const flatClasses = await this.dataSource.query(
+      `
+      select * from bill_class class where class.fullName like '%${keyword}%'
+      UNION
+      select * from bill_class bc where bc.parentId in(select class.id from bill_class class where class.fullName like '%${keyword}%' and class.parentId is null)
+      UNION
+      select * from bill_class bc where bc.id in(select class.parentId from bill_class class where class.fullName like '%${keyword}%' and class.parentId is not null) order by sortCode
+      `
+    )
+    
+    const list = this.buildClassTree(flatClasses)
 
     return {
       list

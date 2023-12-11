@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Query, Delete } from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
@@ -62,8 +62,8 @@ export class ClassController {
   // class
   @ApiOperation({summary:"获取带有检查信息的班组列表"})
   @Get('checkStatus')
-  findAllClassWithCheckStatus() {
-    return this.classService.findAllClassWithCheckStatus();
+  findAllClassWithCheckStatus(@Query('keyword') keyword: string) {
+    return this.classService.findAllClassWithCheckStatus(keyword);
   }
 
   @ApiOperation({summary:"获取带有检查信息的父级班组列表"})

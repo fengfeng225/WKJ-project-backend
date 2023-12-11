@@ -159,11 +159,13 @@ export class CheckPlanService {
     if (checkPlan.classType === 'classDivide') {
       classes = await this.classRepository
       .createQueryBuilder('class')
+      .where('class.parentId IS NOT NULL')
       .getMany()
-    }
-
-    if (checkPlan.classType === 'categoryDivide') {
-
+    } else {
+      classes = await this.classRepository
+      .createQueryBuilder('class')
+      .where('class.parentId IS NULL')
+      .getMany()
     }
 
     const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
@@ -320,16 +322,19 @@ export class CheckPlanService {
           try {
             // 根据不同分类获取班级
             let classes: BillClass[]
-            // 按班级划分
+            
             if (newPlan.classType === 'classDivide') {
+              // 按班级划分
               classes = await this.classRepository
               .createQueryBuilder('class')
+              .where('class.parentId IS NOT NULL')
               .getMany()
-            }
-
-            // 按类别划分
-            if (newPlan.classType === 'categoryDivide') {
-
+            } else {
+              // 按类别划分
+              classes = await this.classRepository
+              .createQueryBuilder('class')
+              .where('class.parentId IS NULL')
+              .getMany()
             }
 
             // 获取进行中的记录, 并结束进行中的检查
