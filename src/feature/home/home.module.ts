@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { HomeService } from './home.service';
 import { HomeController } from './home.controller';
 import { MbModule } from '../bill/mb/mb.module';
-import { MenuModule } from '../menu/menu.module';
+import { CheckRecord } from '../check-plan/entities/check-record.entity';
 
 @Module({
-  imports: [MbModule, MenuModule],
+  imports: [
+    TypeOrmModule.forFeature([CheckRecord]),
+    MbModule
+  ],
   controllers: [HomeController],
   providers: [HomeService],
 })

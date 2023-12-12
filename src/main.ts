@@ -12,10 +12,10 @@ import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
 
 async function bootstrap() {
-  const logger: Logger = new Logger('main.ts');
+  const logger: Logger = new Logger('INFO');
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    // logger: ['error', 'warn', 'log'],
+    logger: ['error', 'warn']
   });
 
   // 全局异常过滤
@@ -64,7 +64,7 @@ async function bootstrap() {
   }
 
   await app.listen(9000, () => {
-    logger.log(`Now listening on: http://localhost:9000`);
+    logger.warn(`Now listening on: http://localhost:9000`);
   });
 }
 bootstrap();

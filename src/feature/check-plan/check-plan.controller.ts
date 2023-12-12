@@ -7,6 +7,7 @@ import { RequirePermission } from 'src/decorators/require-permission';
 
 @ApiTags('billCheck')
 @ApiBearerAuth()
+@RequirePermission('admin')
 @Controller('scheduledTask/billCheckPlan')
 export class CheckPlanController {
   constructor(private readonly checkPlanService: CheckPlanService) {}
@@ -16,7 +17,6 @@ export class CheckPlanController {
   init() {
     return this.checkPlanService.init()
   }
-
 
   @ApiOperation({summary:"获取检查计划下发日志"})
   @ApiQuery({name: 'runResult', required: false})

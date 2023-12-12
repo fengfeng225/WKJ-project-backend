@@ -10,7 +10,13 @@ export class HomeController {
 
   @ApiOperation({summary:"获取各台账总数"})
   @Get('sumBills')
-  findAll(@Req() req) {
-    return this.homeService.findAll(req.user.userId, req.user.account);
+  findSumBills() {
+    return this.homeService.findSumBills();
+  }
+
+  @ApiOperation({summary:"获取本期检查计划列表"})
+  @Get('newCheckRecord')
+  findNewCheckRecord(@Req() req) {
+    return this.homeService.findNewCheckRecord(req.user.userId, req.user.account);
   }
 }

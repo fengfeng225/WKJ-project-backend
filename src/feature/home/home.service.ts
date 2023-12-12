@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MbLong } from '../bill/mb/entities/mb-long.entity';
 import { MbShort } from '../bill/mb/entities/mb-short.entity';
-import { Menu } from '../menu/entities/menu.entity';
+import { BillClass } from '../bill/class/entities/class.entity';
+import { CheckRecord } from '../check-plan/entities/check-record.entity';
 
 @Injectable()
 export class HomeService {
@@ -12,41 +13,53 @@ export class HomeService {
     private readonly longRepository:Repository<MbLong>,
     @InjectRepository(MbShort)
     private readonly shortRepository:Repository<MbShort>,
-    @InjectRepository(Menu)
-    private readonly menuRepository:Repository<Menu>,
+    @InjectRepository(BillClass)
+    private readonly classRepository:Repository<BillClass>,
+    @InjectRepository(CheckRecord)
+    private readonly recordRepository:Repository<CheckRecord>
   ){}
 
-  private async getUserMenus(id: string, account: string): Promise<Menu[]> {
+  private async getUserClassList(id: string, account: string): Promise<BillClass[]> {
     if (account === 'admin') {
-      return await this.menuRepository
-      .createQueryBuilder('menu')
-      .select('menu.entityCode')
-      .where('menu.enabledMark = 1')
+      return await this.classRepository
+      .createQueryBuilder('class')
+      .select('class.id')
       .getMany();
     }
-    return await this.menuRepository
-    .createQueryBuilder('menu')
-    .select('menu.entityCode')
-    .innerJoin('role_menu_relation', 'rmr', 'rmr.menuId = menu.id')
-    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rmr.roleId')
+    return await this.classRepository
+    .createQueryBuilder('class')
+    .select('class.id')
+    .innerJoin('role_class_relation', 'rcr', 'rcr.billClassId = class.id')
+    .innerJoin('user_role_relation', 'urr', 'urr.roleId = rcr.roleId')
     .where('urr.userId = :id', { id })
-    .andWhere('menu.enabledMark = 1')
     .getMany();
   }
 
-  async findAll(id: string, account: string) {
-    const menus = await this.getUserMenus(id, account)
-    const menusEntityCode = menus.map(menu => menu.entityCode)
-    const data: { [key: string]: any } = {}
-
-    if (menusEntityCode.includes('shortBill')) {
-      data.totalShort = await this.shortRepository.count()
-    }
-
-    if (menusEntityCode.includes('longBill')) {
-      data.totalLong = await this.longRepository.count()
-    }
+  async findSumBills() {
+    const totalShort = await this.shortRepository.count()
+    const totalLong = await this.longRepository.count()
     
-    return data
+    return {
+      totalShort,
+      totalLong
+    }
+  }
+
+  async findNewCheckRecord(id: string, account: string): Promise<{list: CheckRecord[]}> {
+    const classList = await this.getUserClassList(id, account)
+    const classIds = classList.map(item => item.id)
+    const records = await this.recordRepository
+    .createQueryBuilder('record')
+    .select(['record.id as id', 'record.type as type', 'record.fullName as fullName', 'record.checkStatus as checkStatus', 'record.creatorTime as creatorTime'])
+    .leftJoin('bill_class', 'class', 'record.classId = class.id')
+    .addSelect('class.fullName', 'className')
+    .where('checking = 1')
+    .andWhere('classId IN (:...classIds)', {classIds})
+    .orderBy('record.creatorTime', 'DESC')
+    .getRawMany()
+
+    return {
+      list: records
+    }
   }
 }

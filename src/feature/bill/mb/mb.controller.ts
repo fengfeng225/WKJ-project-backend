@@ -20,7 +20,7 @@ export class MbController {
   @ApiQuery({name: 'pageSize', required: false})
   @ApiQuery({name: 'queryJson', required: false})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: null
   })
   @Get('shortBill')
@@ -30,7 +30,7 @@ export class MbController {
 
   @ApiOperation({summary:"获取全部短期盲板"})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: 'btn_export'
   })
   @Get('allShortBill')
@@ -40,7 +40,7 @@ export class MbController {
 
   @ApiOperation({summary:"新增短期盲板"})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: 'btn_add'
   })
   @Post('shortBill')
@@ -50,7 +50,7 @@ export class MbController {
 
   @ApiOperation({summary:"获取短期盲板信息"})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: 'btn_edit'
   })
   @Get('shortBill/:id')
@@ -60,7 +60,7 @@ export class MbController {
 
   @ApiOperation({summary:"更新短期盲板"})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: 'btn_edit'
   })
   @Put('shortBill/:id')
@@ -70,7 +70,7 @@ export class MbController {
 
   @ApiOperation({summary:"删除短期盲板"})
   @RequirePermission({
-    requireMenu: 'shortBill',
+    requireMenu: (context) => 'shortBill',
     requireButton: 'btn_delete'
   })
   @Delete('shortBill/:id')
@@ -87,7 +87,7 @@ export class MbController {
   @ApiQuery({name: 'pageSize', required: false})
   @ApiQuery({name: 'queryJson', required: false})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: null
   })
   @Get('longBill')
@@ -97,7 +97,7 @@ export class MbController {
 
   @ApiOperation({summary:"获取全部长期盲板"})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: 'btn_export'
   })
   @Get('allLongBill')
@@ -107,7 +107,7 @@ export class MbController {
 
   @ApiOperation({summary:"新增长期盲板"})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: 'btn_add'
   })
   @Post('longBill')
@@ -117,7 +117,7 @@ export class MbController {
 
   @ApiOperation({summary:"获取长期盲板信息"})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: 'btn_edit'
   })
   @Get('longBill/:id')
@@ -127,7 +127,7 @@ export class MbController {
 
   @ApiOperation({summary:"更新长期盲板"})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: 'btn_edit'
   })
   @Put('longBill/:id')
@@ -137,7 +137,7 @@ export class MbController {
 
   @ApiOperation({summary:"删除长期盲板"})
   @RequirePermission({
-    requireMenu: 'longBill',
+    requireMenu: (context) => 'longBill',
     requireButton: 'btn_delete'
   })
   @Delete('longBill/:id')
@@ -153,7 +153,7 @@ export class MbController {
   @ApiQuery({name: 'currentPage', required: false})
   @ApiQuery({name: 'pageSize', required: false})
   @RequirePermission({
-    requireMenu: 'disassemblyDetails',
+    requireMenu: (context) => 'disassemblyDetails',
     requireButton: null
   })
   @Get('bill/disassembleDetails')
@@ -163,7 +163,7 @@ export class MbController {
 
   @ApiOperation({summary:"删除拆装明细"})
   @RequirePermission({
-    requireMenu: 'disassemblyDetails',
+    requireMenu: (context) => 'disassemblyDetails',
     requireButton: 'btn_delete'
   })
   @Delete('bill/disassembleDetail/:id')

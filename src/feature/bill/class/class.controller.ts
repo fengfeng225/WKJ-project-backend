@@ -23,18 +23,30 @@ export class ClassController {
   }
 
   @ApiOperation({summary:"一键检查"})
+  @RequirePermission({
+    requireMenu: (context) => context.body.type,
+    requireButton: 'btn_check'
+  })
   @Put('checkAll')
   checkAll(@Body() checkInfoDto: CheckInfoDto) {
     return this.classService.checkAll(checkInfoDto);
   }
 
   @ApiOperation({summary:"获取检查记录"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_record'
+  })
   @Get(':id/checkRecords/:type')
   getRecords(@Param('id') id: string, @Param('type') type: string) {
     return this.classService.getRecords(id, type);
   }
 
   @ApiOperation({summary:"处理检查异常"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_abnormalHandle'
+  })
   @Put('checkRecord/fix/:id')
   fixRecord(@Param('id') id: string, @Body() fixRecordDto: FixRecordDto) {
     return this.classService.fixRecord(id, fixRecordDto);
@@ -61,36 +73,60 @@ export class ClassController {
 
   // class
   @ApiOperation({summary:"获取带有检查信息的班组列表"})
+  @RequirePermission({
+    requireMenu: (context) => 'classCheckMb',
+    requireButton: ''
+  })
   @Get('checkStatus')
   findAllClassWithCheckStatus(@Query('keyword') keyword: string) {
     return this.classService.findAllClassWithCheckStatus(keyword);
   }
 
   @ApiOperation({summary:"获取带有检查信息的父级班组列表"})
+  // @RequirePermission({
+  //   requireMenu: (context) => 'classCheckMb',
+  //   requireButton: ''
+  // })
   @Get('parentCheckStatus')
   findParentClassWithCheckStatus() {
     return this.classService.findParentClassWithCheckStatus();
   }
 
   @ApiOperation({summary:"新增班组"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_add'
+  })
   @Post()
   createClass(@Body() createClassDto: CreateClassDto) {
     return this.classService.createClass(createClassDto);
   }
 
   @ApiOperation({summary:"更新班组信息"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_edit'
+  })
   @Put(':id')
   updateClass(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
     return this.classService.updateClass(id, updateClassDto);
   }
 
   @ApiOperation({summary:"删除班组"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_delete'
+  })
   @Delete(':id')
   deleteClass(@Param('id') id: string) {
     return this.classService.deleteClass(id);
   }
 
   @ApiOperation({summary:"获取班组信息"})
+  @RequirePermission({
+    requireMenu: (context) => ['classCheckMb'],
+    requireButton: 'btn_edit'
+  })
   @Get(':id')
   findOneClass(@Param('id') id: string) {
     return this.classService.findOneClass(id);

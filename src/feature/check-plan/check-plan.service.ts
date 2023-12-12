@@ -376,7 +376,7 @@ export class CheckPlanService {
               await transactionalEntityManager.save(CheckPlanRunLog, log)
             })
 
-            this.logger.log(`下发${newPlan.fullName}检查计划成功`)
+            this.logger.warn(`下发${newPlan.fullName}检查计划成功`)
           } catch (error) {
              // 创建失败日志
             const log = new CheckPlanRunLog()
@@ -384,7 +384,7 @@ export class CheckPlanService {
             log.description = error.message
             log.checkPlanId = newPlan.id
             await this.logRepository.save(log)
-            this.logger.warn(`下发${newPlan.fullName}检查计划失败`)
+            this.logger.error(`下发${newPlan.fullName}检查计划失败`)
           }
         }, null, false, null, {execute: 'automatic'})
 
@@ -396,7 +396,7 @@ export class CheckPlanService {
         }
     })
 
-    this.logger.log(`检查计划任务调度初始化完成`)
+    this.logger.warn(`检查计划任务调度初始化完成`)
   }
 
   async init() {
