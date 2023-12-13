@@ -71,6 +71,14 @@ export class CheckPlan {
   nextRunTime: Date;
 
   @Column({
+    nullable: true,
+    select: false,
+    type: 'timestamp',
+    comment: '停止时间'
+  })
+  stopRunTime: Date;
+
+  @Column({
     type: 'int',
     default: 0,
     comment: '排序'

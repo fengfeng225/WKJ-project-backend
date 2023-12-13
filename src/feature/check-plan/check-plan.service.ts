@@ -1,7 +1,8 @@
-import { ConflictException, NotFoundException, Injectable, ForbiddenException, Logger } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable, ForbiddenException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager, Not } from 'typeorm';
 import { SchedulerRegistry } from '@nestjs/schedule';
+import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { CronJob, CronTime } from 'cron';
 import * as cronParser from 'cron-parser';
 import * as moment from 'moment';
@@ -26,7 +27,7 @@ export class CheckPlanService {
     private dataSource: DataSource
   ){}
 
-  private logger: Logger = new Logger('ScheduledTask')
+  private logger: CustomLogger = new CustomLogger('CheckPlan')
 
   async findAll(keyword: string) {
     const query = this.planRepository.createQueryBuilder('checkPlan').orderBy('sortCode');
@@ -125,7 +126,15 @@ export class CheckPlanService {
     if (!checkPlan) throw new NotFoundException('找不到该检查计划')
     
     checkPlan.enabledMark = 1
+    checkPlan.stopRunTime = null
     checkPlan.lastModifyTime = new Date()
+
+    // 移除到期处理本轮记录的任务
+    const timeouts = this.schedulerRegistry.getTimeouts();
+    if (timeouts.some(name => name === checkPlan.entityCode)) {
+      this.schedulerRegistry.deleteTimeout(checkPlan.entityCode);
+      this.logger.log(`${checkPlan.fullName}最后一期检查记录定时清算任务已移除`, 'ScheduledTask')
+    }
     
     await this.planRepository.save(checkPlan)
 
@@ -134,6 +143,7 @@ export class CheckPlanService {
     job.start()
     job.context.execute = 'manual'
     job.fireOnTick()
+    this.logger.log(`${checkPlan.fullName}定期检查任务已开启`, 'ScheduledTask')
   }
 
   async stopCheck(id: string) {
@@ -147,67 +157,19 @@ export class CheckPlanService {
     // 停止任务
     const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
     job.stop()
+    this.logger.log(`${checkPlan.fullName}定期检查任务已停止`, 'ScheduledTask')
 
     // 修改计划为停用
     checkPlan.enabledMark = 0
+    checkPlan.stopRunTime = checkPlan.nextRunTime
     checkPlan.nextRunTime = null
     checkPlan.lastModifyTime = new Date()
 
-    // 获取班组
-    let classes: BillClass[]
+    await this.planRepository.save(checkPlan)
 
-    if (checkPlan.classType === 'classDivide') {
-      classes = await this.classRepository
-      .createQueryBuilder('class')
-      .where('class.parentId IS NOT NULL')
-      .getMany()
-    } else {
-      classes = await this.classRepository
-      .createQueryBuilder('class')
-      .where('class.parentId IS NULL')
-      .getMany()
-    }
+    // 开启到期处理本轮记录的任务
+    this.addTimeout(checkPlan)
 
-    const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
-    const historyStatusName = checkPlan.entityCode + 'CheckedStatus'
-
-    // 开启事务
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(CheckPlan, checkPlan)
-      
-      // 获取进行中的记录, 并结束进行中的检查
-      const records = await this.recordRepository.find({
-        where: {
-          checking: 1,
-          entityCode: checkPlan.entityCode
-        }
-      })
-
-      records.forEach(record => {
-        if (record.checkStatus === 0) record.checkStatus = -1
-        record.checking = 0
-      })
-      await transactionalEntityManager.save(CheckRecord, records)
-
-      // 更新班组检查状态
-      for (const item of classes) {
-        // 将班组本期检查状态改为空
-        item[currentStatusName] = -1
-        // 更新历史检查状态
-        const incompleteCheck = await this.recordRepository.find({
-          where: {
-            checking: 0,
-            checkStatus: -1,
-            classId: item.id,
-            entityCode: checkPlan.entityCode
-          }
-        })
-        if (incompleteCheck.length > 0) item[historyStatusName] = -1
-      }
-
-      await transactionalEntityManager.save(BillClass, classes)
-    })
-    
     return null
   }
 
@@ -304,13 +266,81 @@ export class CheckPlanService {
     }
   }
 
+  private addTimeout(checkPlan: CheckPlan) {
+    const callback = async () => {
+      // 获取班组
+      let classes: BillClass[]
+
+      if (checkPlan.classType === 'classDivide') {
+        classes = await this.classRepository
+        .createQueryBuilder('class')
+        .where('class.parentId IS NOT NULL')
+        .getMany()
+      } else {
+        classes = await this.classRepository
+        .createQueryBuilder('class')
+        .where('class.parentId IS NULL')
+        .getMany()
+      }
+
+      const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
+      const historyStatusName = checkPlan.entityCode + 'CheckedStatus'
+
+      // 开启事务
+      await this.dataSource.transaction(async (transactionalEntityManager) => {      
+        // 获取进行中的记录, 并结束进行中的检查
+        const records = await this.recordRepository.find({
+          where: {
+            checking: 1,
+            entityCode: checkPlan.entityCode
+          }
+        })
+
+        records.forEach(record => {
+          if (record.checkStatus === 0) record.checkStatus = -1
+          record.checking = 0
+        })
+        await transactionalEntityManager.save(CheckRecord, records)
+
+        // 更新班组检查状态
+        for (const item of classes) {
+          // 将班组本期检查状态改为空
+          item[currentStatusName] = -1
+          // 更新历史检查状态
+          const incompleteCheck = await this.recordRepository.find({
+            where: {
+              checking: 0,
+              checkStatus: -1,
+              classId: item.id,
+              entityCode: checkPlan.entityCode
+            }
+          })
+          if (incompleteCheck.length > 0) item[historyStatusName] = -1
+        }
+
+        await transactionalEntityManager.save(BillClass, classes)
+
+        // 将plan的stopRunTime清空
+        checkPlan.stopRunTime = null
+        await transactionalEntityManager.save(CheckPlan, checkPlan)
+      })
+
+      this.schedulerRegistry.deleteTimeout(checkPlan.entityCode);
+      this.logger.log(`${checkPlan.fullName}最后一期检查记录清算完毕，任务已移除`, 'ScheduledTask')
+    };
+  
+    const milliseconds = new Date(checkPlan.stopRunTime).getTime() - new Date().getTime()
+    const timeout = setTimeout(callback, milliseconds);
+    this.schedulerRegistry.addTimeout(checkPlan.entityCode, timeout);
+    this.logger.log(`${checkPlan.fullName}最后一期检查记录定时清算已开启`, 'ScheduledTask')
+  }
+
   // 初始化定时任务
-  // 待优化 1. 修改cron或重启服务，上轮记录的处理 2. 停止任务，上轮记录的处理 3. 开启任务，对停止任务做过处理的记录再处理
   async initScheduledTask() {
     const checkPlan = await this.planRepository.find()
 
     checkPlan.forEach(plan => {
-        // 定义任务
+        // 定义检查任务
         const job = new CronJob(plan.cron, async () => {
           // 获取最新的plan，可能用户更新过，特别是enableMark
           const newPlan = await this.planRepository.findOne({
@@ -320,6 +350,12 @@ export class CheckPlanService {
           })
 
           try {
+            // 获取当前任务
+            const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
+            const executeType = job.context.execute
+            // 改为自动执行标识
+            job.context.execute = 'automatic'
+
             // 根据不同分类获取班级
             let classes: BillClass[]
             
@@ -343,28 +379,37 @@ export class CheckPlanService {
             .where('checking = 1')
             .andWhere('entityCode = :entityCode', {entityCode: newPlan.entityCode})
             .getMany()
-            
-            // 多表联动，开启事务
-            await this.dataSource.transaction(async (transactionalEntityManager) => {
-              if (checkingRecords.length > 0) {
-                // 将进行中的checking改为0
+
+            // 有记录
+            if (checkingRecords.length > 0) {
+              if (executeType === 'automatic') {  // 若本次任务是自动执行，正常替换
                 checkingRecords.forEach(record => {
                   if (record.checkStatus === 0) record.checkStatus = -1
                   record.checking = 0
                 })
-                await transactionalEntityManager.save(CheckRecord, checkingRecords)
+              } else { // 若是手动执行的，判断记录是否在有效期内
+                const prevRunTime = this.getPrevTime(newPlan.cron).getTime()
+                const recordCreatorTime = new Date(newPlan.lastRunTime).getTime()
+                if (recordCreatorTime >= prevRunTime) return // 有效期内 直接结束
+                // 不在有效期 执行正常替换
+                checkingRecords.forEach(record => {
+                  if (record.checkStatus === 0) record.checkStatus = -1
+                  record.checking = 0
+                })
               }
+            }
+            
+            // 多表联动，开启事务
+            await this.dataSource.transaction(async (transactionalEntityManager) => {
+              if (checkingRecords.length > 0) await transactionalEntityManager.save(CheckRecord, checkingRecords)
 
               // 更新班组检查状态
               await this.updateClassCheck(classes, newPlan, transactionalEntityManager)
 
-              const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
-               // 改为自动执行标识
-              job.context.execute = 'automatic'
               // 更新计划信息 runCount lastRunTime nextRunTime
               newPlan.runCount = newPlan.runCount + 1
               newPlan.nextRunTime = job.nextDate().toJSDate()
-              newPlan.lastRunTime = job.lastDate()
+              newPlan.lastRunTime = job.lastDate() || new Date()
               
               await transactionalEntityManager.save(CheckPlan, newPlan)
 
@@ -376,7 +421,7 @@ export class CheckPlanService {
               await transactionalEntityManager.save(CheckPlanRunLog, log)
             })
 
-            this.logger.warn(`下发${newPlan.fullName}检查计划成功`)
+            this.logger.log(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划成功`, 'ScheduledTask')
           } catch (error) {
              // 创建失败日志
             const log = new CheckPlanRunLog()
@@ -384,19 +429,26 @@ export class CheckPlanService {
             log.description = error.message
             log.checkPlanId = newPlan.id
             await this.logRepository.save(log)
-            this.logger.error(`下发${newPlan.fullName}检查计划失败`)
+            this.logger.error(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划失败`, 'ScheduledTask')
           }
         }, null, false, null, {execute: 'automatic'})
 
         this.schedulerRegistry.addCronJob(plan.entityCode, job)
+
         if (plan.enabledMark === 1) {
           job.start()
           job.context.execute = 'manual'
           job.fireOnTick()
+          this.logger.log(`${plan.fullName}定期检查任务已开启`, 'ScheduledTask')
+        }
+
+        // 定义已停止计划的最后一次记录的处理
+        if (plan.enabledMark === 0 && plan.stopRunTime) {
+          this.addTimeout(plan)
         }
     })
 
-    this.logger.warn(`检查计划任务调度初始化完成`)
+    this.logger.log(`检查计划任务调度初始化完成`, 'ScheduledTask')
   }
 
   async init() {

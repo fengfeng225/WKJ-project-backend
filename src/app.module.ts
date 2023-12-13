@@ -19,6 +19,7 @@ import { HomeModule } from './feature/home/home.module';
 import { CheckPlanModule } from './feature/check-plan/check-plan.module';
 import { ClassModule } from './feature/bill/class/class.module';
 import envConfig from 'config/envConfig';
+import { CustomLogger } from 'src/core/logger/custom-logger-service';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import envConfig from 'config/envConfig';
   controllers: [AppController],
   providers: [
     AppService,
+    CustomLogger,
     {
       provide:APP_GUARD,
       useClass:JwtAuthGuard
@@ -66,5 +68,6 @@ import envConfig from 'config/envConfig';
       useClass: PermissionGuard,
     }
   ],
+  exports: [CustomLogger]
 })
 export class AppModule {}
