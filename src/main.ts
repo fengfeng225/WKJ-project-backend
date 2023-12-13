@@ -23,7 +23,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionFilter())
   
   // 全局拦截器
-  app.useGlobalInterceptors(new HttpReqTransformInterceptor())
+  // app.useGlobalInterceptors(new HttpReqTransformInterceptor())
 
   // 全局管道
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));

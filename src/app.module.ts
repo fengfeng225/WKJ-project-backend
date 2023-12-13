@@ -4,7 +4,8 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './feature/user/user.module';
 import { AuthModule } from './core/auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
@@ -20,6 +21,7 @@ import { CheckPlanModule } from './feature/check-plan/check-plan.module';
 import { ClassModule } from './feature/bill/class/class.module';
 import envConfig from 'config/envConfig';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
+import { LogModule } from './log/log.module';
 
 @Module({
   imports: [
@@ -53,7 +55,8 @@ import { CustomLogger } from 'src/core/logger/custom-logger-service';
     DictionaryModule,
     HomeModule,
     CheckPlanModule,
-    ClassModule
+    ClassModule,
+    LogModule
   ],
   controllers: [AppController],
   providers: [
@@ -66,6 +69,10 @@ import { CustomLogger } from 'src/core/logger/custom-logger-service';
     {
       provide: APP_GUARD,
       useClass: PermissionGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpReqTransformInterceptor,
     }
   ],
   exports: [CustomLogger]
