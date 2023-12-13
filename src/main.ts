@@ -2,8 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AllExceptionFilter } from './core/filters/all-exception.filter';
-import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
@@ -18,12 +16,6 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true
   });
-
-  // 全局异常过滤
-  app.useGlobalFilters(new AllExceptionFilter())
-  
-  // 全局拦截器
-  // app.useGlobalInterceptors(new HttpReqTransformInterceptor())
 
   // 全局管道
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));

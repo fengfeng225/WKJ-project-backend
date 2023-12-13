@@ -10,9 +10,14 @@ export class LogService {
     private readonly logRepository:Repository<Log>
   ){}
 
-  async createLog(method: string, path: string, requestData: object): Promise<Log> {
-    const log = new Log(method, path, requestData);
-    console.log(log)
+  async createLog(
+    requestMethod: string,
+    requestURL: string,
+    requestData: object,
+    userName: string,
+    userAgent: string
+  ): Promise<Log> {
+    const log = new Log(requestMethod, requestURL, requestData, userName, userAgent, 'success');
     return this.logRepository.save(log);
   }
 }

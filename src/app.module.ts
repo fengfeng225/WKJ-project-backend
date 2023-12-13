@@ -4,8 +4,9 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './feature/user/user.module';
 import { AuthModule } from './core/auth/auth.module';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { HttpReqTransformInterceptor } from './core/interceptors/http-req.interceptor';
+import { AllExceptionFilter } from './core/filters/all-exception.filter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './core/auth/jwt.auth.guard';
@@ -73,6 +74,10 @@ import { LogModule } from './log/log.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: HttpReqTransformInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionFilter
     }
   ],
   exports: [CustomLogger]
