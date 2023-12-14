@@ -171,11 +171,12 @@ export class ClassService {
     }
   }
 
-  async findParentClassWithCheckStatus(): Promise<{list: BillClass[]}> {
+  async findParentClassWithCheckStatus(keyword: string): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
-    .where('class.parentId IS NULL')
-    .orderBy('class.sortCode')
+    .where('parentId IS NULL')
+    .andWhere('fullName LIKE :keyword', {keyword: `%${keyword}%`})
+    .orderBy('sortCode')
     .getMany()
 
     return {

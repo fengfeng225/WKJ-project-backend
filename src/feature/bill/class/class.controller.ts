@@ -88,8 +88,8 @@ export class ClassController {
   //   requireButton: ''
   // })
   @Get('parentCheckStatus')
-  findParentClassWithCheckStatus() {
-    return this.classService.findParentClassWithCheckStatus();
+  findParentClassWithCheckStatus(@Query('keyword') keyword: string) {
+    return this.classService.findParentClassWithCheckStatus(keyword);
   }
 
   @ApiOperation({summary:"新增班组"})
