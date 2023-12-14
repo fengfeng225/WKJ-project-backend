@@ -85,7 +85,6 @@ export class CheckPlanService {
     entity.lastModifyTime = new Date()
     if (checkPlan.enabledMark === 1) entity.nextRunTime = job.nextDate().toJSDate()
     await this.planRepository.save(entity)
-    return null
   }
 
   async findLogs(id: string, {
@@ -102,7 +101,7 @@ export class CheckPlanService {
     }
 
     if (startTime && endTime) {
-      query.andWhere('creatorTime between :startTime and :endTime', {startTime, endTime})
+      query.andWhere('creatorTime between :startTime and :endTime', {startTime: new Date(+startTime), endTime: new Date(+endTime)})
     }
 
     const total = await query.getCount();
@@ -169,8 +168,6 @@ export class CheckPlanService {
 
     // 开启到期处理本轮记录的任务
     this.addTimeout(checkPlan)
-
-    return null
   }
 
   async updateClassCheck(classes: BillClass[], plan: CheckPlan, manager: EntityManager) {

@@ -31,7 +31,6 @@ export class DictionaryService {
 
     const entity = this.dictionaryRepository.create(createDictionaryDto)
     await this.dictionaryRepository.save(entity)
-    return null
   }
 
   async findAllDictionary() {
@@ -70,7 +69,6 @@ export class DictionaryService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.dictionaryRepository.save(updateDictionaryDto)
-    return null
   }
 
   async removeDictionary(id: string) {
@@ -97,8 +95,6 @@ export class DictionaryService {
       // 删除 dictionary 对象
       await transactionalEntityManager.remove(dictionary);
     })
-
-    return null
   }
 
   // 选项
@@ -138,7 +134,6 @@ export class DictionaryService {
 
     const entity = this.optionRepository.create(createOptionDto)
     await this.optionRepository.save(entity)
-    return null
   }
 
   async findAllOption(id: string, keyword: string) {
@@ -181,7 +176,6 @@ export class DictionaryService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.optionRepository.save(updateOptionDto)
-    return null
   }
 
   async removeOption(id: string) {
@@ -190,7 +184,5 @@ export class DictionaryService {
     .delete()
     .where("id = :id", { id })
     .execute()
-
-    return null
   }
 }

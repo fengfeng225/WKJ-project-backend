@@ -27,7 +27,7 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('账号或密码错误');
 
     // 签发jwt
-    const payload = {account:user.account,userId:user.id};
+    const payload = { account: user.account, userId: user.id, userName: user.userName};
     const token = this.jwtService.sign(payload)
 
     return {

@@ -94,7 +94,6 @@ export class ClassService {
 
     const entity = this.classRepository.create(createClassDto) 
     await this.classRepository.save(entity)
-    return null
   }
 
   async updateClass(id: string, updateClassDto: UpdateClassDto) {
@@ -116,7 +115,6 @@ export class ClassService {
     const entity = this.classRepository.create(updateClassDto)
     entity.lastModifyTime = new Date()
     await this.classRepository.save(entity)
-    return null
   }
 
   async deleteClass(id: string) {
@@ -143,7 +141,6 @@ export class ClassService {
 
     currentClass.lastModifyTime = new Date()
     await this.classRepository.softRemove(currentClass)
-    return null
   }
 
   async findOneClass(id: string) {
@@ -220,8 +217,6 @@ export class ClassService {
       classes.forEach(item => item[currentStatusName] = 1)
       await transactionalEntityManager.save(BillClass, classes)
     })
-
-    return null
   }
 
   async getRecords(id: string, type: string) {
@@ -276,8 +271,6 @@ export class ClassService {
         await transactionalEntityManager.save(BillClass, currentClass)
       }
     })
-
-    return null
   }
 
   // 初始测试数据

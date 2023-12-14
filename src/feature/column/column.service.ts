@@ -24,7 +24,6 @@ export class ColumnService {
 
     const entity = this.columnRepository.create(createColumnDto)
     await this.columnRepository.save(entity)
-    return null
   }
 
   async batchCreate(menuId: string, columnData) {
@@ -39,8 +38,6 @@ export class ColumnService {
     .insert()
     .values(entities)
     .execute()
-
-    return null
   }
 
   async findAll(id: string) {
@@ -84,7 +81,6 @@ export class ColumnService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.columnRepository.save(updateColumnDto)
-    return null
   }
 
   async remove(id: string) {
@@ -93,7 +89,5 @@ export class ColumnService {
     .delete()
     .where('id = :id', {id})
     .execute()
-    
-    return null
   }
 }

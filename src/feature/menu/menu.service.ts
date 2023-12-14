@@ -50,8 +50,6 @@ export class MenuService {
     
     const entity = this.menuRepository.create(createMenuDto)
     await this.menuRepository.save(entity)
-
-    return null
   }
 
   async findAll(keyword) {
@@ -113,7 +111,6 @@ export class MenuService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.menuRepository.save(updateMenuDto)
-    return null
   }
 
   async remove(id: string) {
@@ -151,8 +148,6 @@ export class MenuService {
       // 删除 Menu 对象
       await transactionalEntityManager.remove(menu);
     })
-
-    return null
   }
 
   // 删除关联的button

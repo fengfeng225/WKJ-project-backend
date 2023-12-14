@@ -24,7 +24,6 @@ export class ButtonService {
 
     const entity = this.buttonRepository.create(createButtonDto)
     await this.buttonRepository.save(entity)
-    return null
   }
 
   async findAll(id: string) {
@@ -68,7 +67,6 @@ export class ButtonService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.buttonRepository.save(updateButtonDto)
-    return null
   }
 
   async remove(id: string) {
@@ -77,7 +75,5 @@ export class ButtonService {
     .delete()
     .where('id = :id', {id})
     .execute()
-    
-    return null
   }
 }

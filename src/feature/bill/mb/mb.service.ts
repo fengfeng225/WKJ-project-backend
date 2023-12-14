@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException, ForbiddenException, Injectable } from '@nestjs/common';
+import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource, EntityManager } from 'typeorm';
 import { CreateMbDto } from './dto/create-mb.dto';
@@ -44,8 +44,6 @@ export class MbService {
       const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
-
-    return null
   }
 
   async findShortBill({
@@ -134,18 +132,15 @@ export class MbService {
     if (updateMbDto.status === oldStatus) {
       // 没切换
       await this.shortRepository.save(updateMbDto)
-      return null
+    } else {
+      // 切换，事务处理
+      await this.dataSource.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(MbShort, updateMbDto)
+        const { id, ...basicInfo } = updateMbDto
+        const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'short'}
+        await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+      })
     }
-    
-    // 切换，事务处理
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(MbShort, updateMbDto)
-      const { id, ...basicInfo } = updateMbDto
-      const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'short'}
-      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
-    })
-
-    return null
   }
 
   async removeShortBill(shortId: string) {
@@ -162,8 +157,6 @@ export class MbService {
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'short'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
-
-    return null
   }
 
 
@@ -188,8 +181,6 @@ export class MbService {
       const disassemblyInfo = {...createMbDto, remark: '新增', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
-
-    return null
   }
 
   async findLongBill({
@@ -278,18 +269,15 @@ export class MbService {
     if (updateMbDto.status === oldStatus) {
       // 没切换
       await this.longRepository.save(updateMbDto)
-      return null
+    } else {
+      // 切换，事务处理
+      await this.dataSource.transaction(async (transactionalEntityManager) => {
+        await transactionalEntityManager.save(MbLong, updateMbDto)
+        const { id, ...basicInfo } = updateMbDto
+        const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'long'}
+        await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+      })
     }
-
-    // 切换，事务处理
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(MbLong, updateMbDto)
-      const { id, ...basicInfo } = updateMbDto
-      const disassemblyInfo = {...basicInfo, remark: `切换为 ${updateMbDto.status}`, cycleType: 'long'}
-      await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
-    })
-
-    return null
   }
 
   async removeLongBill(longId: string) {
@@ -306,8 +294,6 @@ export class MbService {
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'long'}
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
-
-    return null
   }
 
   // 获取拆装明细
@@ -358,7 +344,6 @@ export class MbService {
     if (!disassembleDetail) throw new NotFoundException('没有找到相关明细')
 
     await this.disassemblyRepository.softRemove(disassembleDetail)
-    return null
   }
 
   // 添加拆装明细

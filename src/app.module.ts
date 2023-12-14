@@ -23,6 +23,7 @@ import { ClassModule } from './feature/bill/class/class.module';
 import envConfig from 'config/envConfig';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { LogModule } from './log/log.module';
+import { UndergroundSludgeOilModule } from './feature/bill/mutual-channeling-point/underground-sludge-oil/underground-sludge-oil.module';
 
 @Module({
   imports: [
@@ -57,7 +58,8 @@ import { LogModule } from './log/log.module';
     HomeModule,
     CheckPlanModule,
     ClassModule,
-    LogModule
+    LogModule,
+    UndergroundSludgeOilModule
   ],
   controllers: [AppController],
   providers: [

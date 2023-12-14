@@ -59,7 +59,7 @@ export class UpdateMbDto {
   description: string;
 
   @ApiProperty({
-    example:"number",
+    example:"string",
     description:"管线介质名称"
   })
   @IsNotEmpty()

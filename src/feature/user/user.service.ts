@@ -135,7 +135,6 @@ export class UserService {
     const entity = this.userRepository.create(createUserDto)
     entity.roles = roles
     await this.userRepository.save(entity)
-    return null
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -164,7 +163,6 @@ export class UserService {
     const entity = this.userRepository.create(updateUserDto)
     entity.roles = roles
     await this.userRepository.save(entity)
-    return null
   }
 
   async remove(id: string) {
@@ -177,8 +175,6 @@ export class UserService {
     if (!user) throw new NotFoundException('没有找到用户');
 
     await this.userRepository.softRemove(user)
-
-    return null
   }
   
 
@@ -196,8 +192,6 @@ export class UserService {
 
     user.password = updateUserPasswordDto.password
     await this.userRepository.save(user)
-    
-    return null
   }
 
   // 重置密码
@@ -214,8 +208,6 @@ export class UserService {
 
     user.password = resetUserPasswordDto.userPassword
     await this.userRepository.save(user)
-    
-    return null
   }
 
   // 获取用户权限（返回给前端）

@@ -10,11 +10,12 @@ import {
   DeleteDateColumn
 } from 'typeorm';
 import util from 'src/utils/util';
+import { CheckRecord } from 'src/feature/check-plan/entities/check-record.entity';
+import { Role } from 'src/feature/role/entities/role.entity';
 import { MbShort } from '../../mb/entities/mb-short.entity';
 import { MbLong } from '../../mb/entities/mb-long.entity';
 import { MbDisassembly } from '../../mb/entities/mb-disassembly.entity';
-import { CheckRecord } from 'src/feature/check-plan/entities/check-record.entity';
-import { Role } from 'src/feature/role/entities/role.entity';
+import { UndergroundSludgeOil } from '../../mutual-channeling-point/underground-sludge-oil/entities/underground-sludge-oil.entity';
 
 @Entity()
 export class BillClass {
@@ -93,6 +94,9 @@ export class BillClass {
 
   @OneToMany(() => MbDisassembly, (mbDisassembly) => mbDisassembly.class)
   mbDisassemblys: MbDisassembly[];
+
+  @OneToMany(() => UndergroundSludgeOil, (undergroundSludgeOil) => undergroundSludgeOil.class)
+  undergroundSludgeOils: UndergroundSludgeOil[]
 
   @OneToMany(() => CheckRecord, (checkRecord) => checkRecord.class)
   records: CheckRecord[]

@@ -14,12 +14,22 @@ export class AllExceptionFilter implements ExceptionFilter {
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR
 
+    // 添加异常日志
     const { method, path, body } = request;
-    console.log(request)
-    // const userName = request.user.account
-    // const userAgent = request.headers['user-agent']
-    // this.logService.createLog(method, path, body, userName, userAgent);
+    const IPAddress = Array.isArray(request.headers['x-forwarded-for'])
+    ? (request.headers['x-forwarded-for'] as string[])[0]
+    : request.headers['x-forwarded-for'];
+    const userAgent = request.headers['user-agent']
 
+    let userId: string | null, userName: string | null
+    if (request.user) {
+      const user = request.user as { userId: string, userName: string }
+      userId = user.userId
+      userName = user.userName
+    }
+    this.logService.createErrorLog(userId, userName, IPAddress, method, path, userAgent, exception, body);
+
+    // 返回异常信息
     response
       .status(status)
       .json({

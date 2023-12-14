@@ -38,7 +38,6 @@ export class RoleService {
     if (isExist) throw new ConflictException('名称或编码重复')
     const entity = this.roleRepository.create(createRoleDto)
     await this.roleRepository.save(entity)
-    return null
   }
 
   async findAll(keyword: string) {
@@ -82,7 +81,6 @@ export class RoleService {
     if (isExist) throw new ConflictException('名称或编码重复')
     
     await this.roleRepository.save(updateRoleDto)
-    return null
   }
 
   async remove(id: string) {
@@ -97,8 +95,6 @@ export class RoleService {
     if (!role) throw new NotFoundException('没有找到角色');
 
     await this.roleRepository.remove(role)
-
-    return null
   }
 
   // 获取角色拥有的权限
@@ -215,8 +211,6 @@ export class RoleService {
     role.buttons = newButtons
     role.columns = newColumns
     await this.roleRepository.save(role)
-
-    return null
   }
 
   // 获取角色拥有的班组权限
@@ -261,8 +255,6 @@ export class RoleService {
 
     role.classes = newClasses
     await this.roleRepository.save(role)
-
-    return null
   }
 
   private mergeButtonColumnAndMenu(menus, children: Button_permission[] | Column_permission[]): Menu[] {
