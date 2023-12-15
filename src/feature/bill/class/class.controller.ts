@@ -4,7 +4,6 @@ import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { CheckInfoDto } from './dto/check-info.dto';
 import { FixRecordDto } from './dto/fix-record.dto';
-import { RequireLogin } from 'src/decorators/require-login';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
@@ -13,14 +12,6 @@ import { RequirePermission } from 'src/decorators/require-permission';
 @Controller('admin/bill/class')
 export class ClassController {
   constructor(private readonly classService: ClassService) {}
-
-  // 初始化测试数据
-  @RequireLogin()
-  @Get('init')
-  async initClass() {
-    await this.classService.initClass()
-    return 'done'
-  }
 
   // record相关
   @ApiOperation({summary:"一键检查"})

@@ -82,7 +82,10 @@ export class HomeService {
     .addSelect('plan.nextRunTime', 'nextRunTime')
     .where('checking = 1')
     .andWhere('classId IN (:...classIds)', {classIds})
-    .orderBy('record.creatorTime', 'DESC')
+    .orderBy({
+      'record.checkStatus': 'ASC',
+      'record.creatorTime': 'DESC'
+    })
     .getRawMany()
 
     return {

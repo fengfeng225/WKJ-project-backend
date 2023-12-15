@@ -1,6 +1,5 @@
 import { Controller, Get, Put, Body, Request, Query, Post, Param, Delete } from '@nestjs/common';
 import { UserService } from './user.service';
-import { RequireLogin } from 'src/decorators/require-login';
 import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
@@ -14,13 +13,6 @@ import { RequirePermission } from '../../decorators/require-permission';
 @Controller('permission/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  // 添加测试数据接口
-  @RequireLogin()
-  @Get('init')
-  async initData() {
-    await this.userService.initData();
-    return 'done';
-  }
 
   @ApiOperation({summary:"更改密码"})
   @Put('updatePassword')

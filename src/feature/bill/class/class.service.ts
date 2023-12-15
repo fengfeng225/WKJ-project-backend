@@ -24,7 +24,7 @@ export class ClassService {
     .leftJoinAndSelect('class.children', 'children')
     .select(['class.id', 'class.fullName', 'class.creatorTime', 'class.sortCode', 'children.id', 'children.fullName', 'children.creatorTime', 'children.sortCode'])
     .where('class.parentId IS NULL')
-    .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword}%`})
+    .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword ?? ''}%`})
     .orderBy('class.sortCode')
     .addOrderBy('children.sortCode')
     .getMany()
@@ -236,43 +236,5 @@ export class ClassService {
         await transactionalEntityManager.save(BillClass, currentClass)
       }
     })
-  }
-
-  // 初始测试数据
-  async initClass() {
-    const class9 = new BillClass()
-    class9.fullName = '白油加氢班组'
-
-    const class10 = new BillClass()
-    class10.fullName = '高压加氢班组'
-
-    const class1 = new BillClass()
-    class1.fullName = '白油一班'
-
-    const class2 = new BillClass()
-    class2.fullName = '白油二班'
-
-    const class3 = new BillClass()
-    class3.fullName = '白油三班'
-
-    const class4 = new BillClass()
-    class4.fullName = '白油四班'
-
-    const class5 = new BillClass()
-    class5.fullName = '高加一班'
-
-    const class6 = new BillClass()
-    class6.fullName = '高加二班'
-
-    const class7 = new BillClass()
-    class7.fullName = '高加三班'
-
-    const class8 = new BillClass()
-    class8.fullName = '高加四班'
-
-    class9.children = [class1, class2, class3, class4]
-    class10.children = [class5, class6, class7, class8]
-
-    await this.classRepository.save([class9, class10])
   }
 }

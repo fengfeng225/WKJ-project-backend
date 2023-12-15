@@ -56,7 +56,6 @@ export class HeatExchanger {
   media: string;
 
   @Column({
-    length: 50,
     comment: '规格型号'
   })
   size: string;

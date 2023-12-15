@@ -426,14 +426,4 @@ export class CheckPlanService {
 
     this.logger.log(`检查计划任务调度初始化完成`, 'ScheduledTask')
   }
-
-  async init() {
-    const checkPlan = new CheckPlan()
-    checkPlan.fullName = '短期盲板'
-    checkPlan.entityCode = 'shortBill'
-    checkPlan.cron = '50 * * * * *'
-    checkPlan.fullName = '短期盲板'
-    await this.planRepository.save(checkPlan)
-    return 'done'
-  }
 }

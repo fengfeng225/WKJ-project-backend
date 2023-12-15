@@ -5,18 +5,12 @@ import { FindLogDto } from './dto/find-log.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
-@ApiTags('billCheck')
+@ApiTags('check-plan')
 @ApiBearerAuth()
 @RequirePermission('admin')
 @Controller('scheduledTask/billCheckPlan')
 export class CheckPlanController {
   constructor(private readonly checkPlanService: CheckPlanService) {}
-
-  // 初始化测试数据
-  @Get('init')
-  init() {
-    return this.checkPlanService.init()
-  }
 
   @ApiOperation({summary:"获取检查计划下发日志"})
   @ApiQuery({name: 'runResult', required: false})
