@@ -16,6 +16,10 @@ import { MbShort } from '../../mb/entities/mb-short.entity';
 import { MbLong } from '../../mb/entities/mb-long.entity';
 import { MbDisassembly } from '../../mb/entities/mb-disassembly.entity';
 import { UndergroundSludgeOil } from '../../mutual-channeling-point/underground-sludge-oil/entities/underground-sludge-oil.entity';
+import { HeatExchanger } from '../../mutual-channeling-point/heat-exchanger/entities/heat-exchanger.entity';
+import { Container } from '../../mutual-channeling-point/container/entities/container.entity';
+import { KeyPoint } from '../../mutual-channeling-point/key-point/entities/key-point.entity';
+import { OtherPoint } from '../../mutual-channeling-point/other-point/entities/other-point.entity';
 
 @Entity()
 export class BillClass {
@@ -36,30 +40,100 @@ export class BillClass {
   @Column({
     type: 'int',
     default: -1,
-    comment: '当前检查(短期)' // 0 - 待检查， 1 - 完成, -1 - 无检查
+    comment: '当前短期盲板检查' // 0 - 待检查， 1 - 完成, -1 - 无检查
   })
   shortBillCheckingStatus: number;
 
   @Column({
     type: 'int',
-    default: 1,
-    comment: '历史检查(短期)' // 1 - 正常， -1 - 异常
+    default: -1,
+    comment: '历史短期盲板检查' // 1 - 正常， 0 - 异常, -1 - 无记录
   })
   shortBillCheckedStatus: number;
 
   @Column({
     type: 'int',
     default: -1,
-    comment: '当前检查(长期)'
+    comment: '当前长期盲板检查'
   })
   longBillCheckingStatus: number;
 
   @Column({
     type: 'int',
-    default: 1,
-    comment: '历史检查(长期)'
+    default: -1,
+    comment: '历史长期盲板检查'
   })
   longBillCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '当前地下污油检查'
+  })
+  undergroundSludgeOilCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史地下污油检查'
+  })
+  undergroundSludgeOilCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '当前换热器检查'
+  })
+  heatExchangerCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史换热器检查'
+  })
+  heatExchangerCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '当前容器检查'
+  })
+  containerCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史容器检查'
+  })
+  containerCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '当前关键点检查'
+  })
+  keyPointCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史关键点检查'
+  })
+  keyPointCheckedStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '当前其他互窜点检查'
+  })
+  otherPointCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史其他互窜点检查'
+  })
+  otherPointCheckedStatus: number;
 
   @Column({
     type: 'int',
@@ -97,6 +171,18 @@ export class BillClass {
 
   @OneToMany(() => UndergroundSludgeOil, (undergroundSludgeOil) => undergroundSludgeOil.class)
   undergroundSludgeOils: UndergroundSludgeOil[]
+
+  @OneToMany(() => HeatExchanger, (heatExchanger) => heatExchanger.class)
+  heatExchangers: HeatExchanger[]
+
+  @OneToMany(() => Container, (container) => container.class)
+  containers: Container[]
+
+  @OneToMany(() => KeyPoint, (keyPoint) => keyPoint.class)
+  keyPoints: KeyPoint[]
+
+  @OneToMany(() => OtherPoint, (otherPoint) => otherPoint.class)
+  otherPoints: OtherPoint[]
 
   @OneToMany(() => CheckRecord, (checkRecord) => checkRecord.class)
   records: CheckRecord[]

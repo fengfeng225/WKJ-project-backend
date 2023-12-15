@@ -24,6 +24,10 @@ import envConfig from 'config/envConfig';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { LogModule } from './log/log.module';
 import { UndergroundSludgeOilModule } from './feature/bill/mutual-channeling-point/underground-sludge-oil/underground-sludge-oil.module';
+import { HeatExchangerModule } from './feature/bill/mutual-channeling-point/heat-exchanger/heat-exchanger.module';
+import { ContainerModule } from './feature/bill/mutual-channeling-point/container/container.module';
+import { KeyPointModule } from './feature/bill/mutual-channeling-point/key-point/key-point.module';
+import { OtherPointModule } from './feature/bill/mutual-channeling-point/other-point/other-point.module';
 
 @Module({
   imports: [
@@ -59,7 +63,11 @@ import { UndergroundSludgeOilModule } from './feature/bill/mutual-channeling-poi
     CheckPlanModule,
     ClassModule,
     LogModule,
-    UndergroundSludgeOilModule
+    UndergroundSludgeOilModule,
+    HeatExchangerModule,
+    ContainerModule,
+    KeyPointModule,
+    OtherPointModule
   ],
   controllers: [AppController],
   providers: [

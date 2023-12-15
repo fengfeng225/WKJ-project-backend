@@ -31,12 +31,6 @@ export class CheckPlan {
   entityCode: string;
 
   @Column({
-    length: 50,
-    comment: '班组类型'
-  })
-  classType: string;
-
-  @Column({
     type: 'text',
     nullable: true,
     comment: '说明'

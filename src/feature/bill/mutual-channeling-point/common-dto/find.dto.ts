@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional } from 'class-validator';
 
-export class FindUndergroundSludgeOilDto {
+export class FindDto {
   @ApiProperty({
     description:"班组Id"
   })
@@ -9,7 +9,7 @@ export class FindUndergroundSludgeOilDto {
   classId: string;
 
   @ApiProperty({
-    description:"关键词(编号)"
+    description:"关键词"
   })
   @IsOptional()
   keyword: string;

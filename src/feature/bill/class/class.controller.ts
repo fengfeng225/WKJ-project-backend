@@ -22,6 +22,7 @@ export class ClassController {
     return 'done'
   }
 
+  // record相关
   @ApiOperation({summary:"一键检查"})
   @RequirePermission({
     requireMenu: (context) => context.body.type,
@@ -52,11 +53,11 @@ export class ClassController {
     return this.classService.fixRecord(id, fixRecordDto);
   }
 
-  // getClassBasic
+  // 班组基本信息
   @ApiOperation({summary:"获取班组id和名称"})
   @Get('basic')
-  findAllClass() {
-    return this.classService.findAllClass();
+  findAllClass(@Query('keyword') keyword: string) {
+    return this.classService.findAllClass(keyword);
   }
 
   @ApiOperation({summary:"获取父级班组id和名称"})
@@ -71,10 +72,10 @@ export class ClassController {
     return this.classService.findClassLeaf();
   }
 
-  // class
+  // 班组管理
   @ApiOperation({summary:"获取带有检查信息的班组列表"})
   @RequirePermission({
-    requireMenu: (context) => 'classCheckMb',
+    requireMenu: (context) => ['classCheckMb', 'classCheckMutualChannelingPoint'],
     requireButton: ''
   })
   @Get('checkStatus')
@@ -82,19 +83,9 @@ export class ClassController {
     return this.classService.findAllClassWithCheckStatus(keyword);
   }
 
-  @ApiOperation({summary:"获取带有检查信息的父级班组列表"})
-  @RequirePermission({
-    requireMenu: (context) => 'classCheckMutualChannelingPoint',
-    requireButton: ''
-  })
-  @Get('parentCheckStatus')
-  findParentClassWithCheckStatus(@Query('keyword') keyword: string) {
-    return this.classService.findParentClassWithCheckStatus(keyword);
-  }
-
   @ApiOperation({summary:"新增班组"})
   @RequirePermission({
-    requireMenu: (context) => ['classCheckMb', 'classCheckMutualChannelingPoint'],
+    requireMenu: (context) => 'class',
     requireButton: 'btn_add'
   })
   @Post()
@@ -104,7 +95,7 @@ export class ClassController {
 
   @ApiOperation({summary:"更新班组信息"})
   @RequirePermission({
-    requireMenu: (context) => ['classCheckMb', 'classCheckMutualChannelingPoint'],
+    requireMenu: (context) => 'class',
     requireButton: 'btn_edit'
   })
   @Put(':id')
@@ -114,7 +105,7 @@ export class ClassController {
 
   @ApiOperation({summary:"删除班组"})
   @RequirePermission({
-    requireMenu: (context) => ['classCheckMb', 'classCheckMutualChannelingPoint'],
+    requireMenu: (context) => 'class',
     requireButton: 'btn_delete'
   })
   @Delete(':id')
@@ -124,7 +115,7 @@ export class ClassController {
 
   @ApiOperation({summary:"获取班组信息"})
   @RequirePermission({
-    requireMenu: (context) => ['classCheckMb', 'classCheckMutualChannelingPoint'],
+    requireMenu: (context) => 'class',
     requireButton: 'btn_edit'
   })
   @Get(':id')

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { UndergroundSludgeOilService } from './underground-sludge-oil.service';
 import { CreateUndergroundSludgeOilDto } from './dto/create-underground-sludge-oil.dto';
 import { UpdateUndergroundSludgeOilDto } from './dto/update-underground-sludge-oil.dto';
-import { FindUndergroundSludgeOilDto } from './dto/find.dto';
+import { FindDto } from '../common-dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
@@ -33,8 +33,8 @@ export class UndergroundSludgeOilController {
     requireButton: null
   })
   @Get()
-  findUndergroundSludgeOilBill(@Query() findUndergroundSludgeOilDto: FindUndergroundSludgeOilDto) {
-    return this.undergroundSludgeOilService.findUndergroundSludgeOilBill(findUndergroundSludgeOilDto);
+  findUndergroundSludgeOilBill(@Query() findDto: FindDto) {
+    return this.undergroundSludgeOilService.findUndergroundSludgeOilBill(findDto);
   }
 
   @ApiOperation({summary:"新增地下污油"})

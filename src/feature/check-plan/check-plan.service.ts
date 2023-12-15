@@ -190,7 +190,7 @@ export class CheckPlanService {
           entityCode: plan.entityCode
         }
       })
-      if (incompleteCheck.length > 0) item[historyStatusName] = -1
+      if (incompleteCheck.length > 0) item[historyStatusName] = 0
 
       const checkRecord = new CheckRecord()
       checkRecord.fullName = this.getCheckTaskName(plan.cron)
@@ -266,19 +266,10 @@ export class CheckPlanService {
   private addTimeout(checkPlan: CheckPlan) {
     const callback = async () => {
       // 获取班组
-      let classes: BillClass[]
-
-      if (checkPlan.classType === 'classDivide') {
-        classes = await this.classRepository
-        .createQueryBuilder('class')
-        .where('class.parentId IS NOT NULL')
-        .getMany()
-      } else {
-        classes = await this.classRepository
-        .createQueryBuilder('class')
-        .where('class.parentId IS NULL')
-        .getMany()
-      }
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .where('class.parentId IS NOT NULL')
+      .getMany()
 
       const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
       const historyStatusName = checkPlan.entityCode + 'CheckedStatus'
@@ -312,7 +303,7 @@ export class CheckPlanService {
               entityCode: checkPlan.entityCode
             }
           })
-          if (incompleteCheck.length > 0) item[historyStatusName] = -1
+          if (incompleteCheck.length > 0) item[historyStatusName] = 0
         }
 
         await transactionalEntityManager.save(BillClass, classes)
@@ -353,22 +344,10 @@ export class CheckPlanService {
             // 改为自动执行标识
             job.context.execute = 'automatic'
 
-            // 根据不同分类获取班级
-            let classes: BillClass[]
-            
-            if (newPlan.classType === 'classDivide') {
-              // 按班级划分
-              classes = await this.classRepository
+            const classes = await this.classRepository
               .createQueryBuilder('class')
               .where('class.parentId IS NOT NULL')
               .getMany()
-            } else {
-              // 按类别划分
-              classes = await this.classRepository
-              .createQueryBuilder('class')
-              .where('class.parentId IS NULL')
-              .getMany()
-            }
 
             // 获取进行中的记录, 并结束进行中的检查
             const checkingRecords = await this.recordRepository
@@ -452,7 +431,6 @@ export class CheckPlanService {
     const checkPlan = new CheckPlan()
     checkPlan.fullName = '短期盲板'
     checkPlan.entityCode = 'shortBill'
-    checkPlan.classType = 'classDivide'
     checkPlan.cron = '50 * * * * *'
     checkPlan.fullName = '短期盲板'
     await this.planRepository.save(checkPlan)

@@ -16,35 +16,15 @@ export class ClassService {
     private readonly recordRepository:Repository<CheckRecord>,
     private dataSource: DataSource
   ){}
-  
-  private buildClassTree(flatClasses: BillClass[]): BillClass[] {
-    const classMap = new Map<string, BillClass>();
-    const result: BillClass[] = [];
-
-    for (const item of flatClasses) {
-      classMap.set(item.id, item);
-    }
-
-    for (const item of flatClasses) {
-      if (item.parentId && classMap.has(item.parentId)) {
-        const parent = classMap.get(item.parentId);
-        if (!parent.children) parent.children = [];
-        parent.children.push(item);
-      } else {
-        result.push(item);
-      }
-    }
-
-    return result;
-  }
 
   // classBasic
-  async findAllClass(): Promise<{list: BillClass[]}> {
+  async findAllClass(keyword: string): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
     .leftJoinAndSelect('class.children', 'children')
-    .select(['class.id', 'class.fullName', 'children.id', 'children.fullName'])
+    .select(['class.id', 'class.fullName', 'class.creatorTime', 'class.sortCode', 'children.id', 'children.fullName', 'children.creatorTime', 'children.sortCode'])
     .where('class.parentId IS NULL')
+    .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword}%`})
     .orderBy('class.sortCode')
     .addOrderBy('children.sortCode')
     .getMany()
@@ -154,29 +134,13 @@ export class ClassService {
   }
 
   async findAllClassWithCheckStatus(keyword: string): Promise<{list: BillClass[]}> {
-    const flatClasses = await this.dataSource.query(
-      `
-      select * from bill_class class where class.fullName like '%${keyword}%'
-      UNION
-      select * from bill_class bc where bc.parentId in(select class.id from bill_class class where class.fullName like '%${keyword}%' and class.parentId is null)
-      UNION
-      select * from bill_class bc where bc.id in(select class.parentId from bill_class class where class.fullName like '%${keyword}%' and class.parentId is not null) order by sortCode
-      `
-    )
-    
-    const list = this.buildClassTree(flatClasses)
-
-    return {
-      list
-    }
-  }
-
-  async findParentClassWithCheckStatus(keyword: string): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
-    .where('parentId IS NULL')
-    .andWhere('fullName LIKE :keyword', {keyword: `%${keyword}%`})
-    .orderBy('sortCode')
+    .leftJoinAndSelect('class.children', 'children')
+    .where('class.parentId IS NULL')
+    .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword}%`})
+    .orderBy('class.sortCode')
+    .addOrderBy('children.sortCode')
     .getMany()
 
     return {

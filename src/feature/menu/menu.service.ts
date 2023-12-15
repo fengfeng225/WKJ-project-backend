@@ -52,18 +52,16 @@ export class MenuService {
     await this.menuRepository.save(entity)
   }
 
-  async findAll(keyword) {
-    const flatMenus = await this.dataSource.query(
-      `
-      select * from menu where menu.fullName like '%${keyword}%'
-      UNION
-      select * from menu m where m.parentId in(select menu.id from menu where menu.fullName like '%${keyword}%' and menu.parentId is null)
-      UNION
-      select * from menu m where m.id in(select menu.parentId from menu where menu.fullName like '%${keyword}%' and menu.parentId is not null) order by sortCode
-      `
-    )
-    
-    const menus = this.buildMenuTree(flatMenus)
+  async findAll(keyword: string) {
+    const menus = await this.menuRepository
+    .createQueryBuilder('menu')
+    .leftJoinAndSelect('menu.children', 'children')
+    .where('menu.parentId IS NULL')
+    .andWhere('menu.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword}%`})
+    .orderBy('menu.sortCode')
+    .addOrderBy('children.sortCode')
+    .getMany()
+
     return {
       list: menus
     }
