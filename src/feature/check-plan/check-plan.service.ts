@@ -29,6 +29,23 @@ export class CheckPlanService {
 
   private logger: CustomLogger = new CustomLogger('CheckPlan')
 
+  private async solveDeadlock(manager: EntityManager, entities) {
+    for (let i = 0; i < 5; i++) { // 尝试5次
+      try {
+        await manager.save(entities)
+        break; // 如果事务成功，跳出循环
+      } catch (err) {
+        if (i === 4) throw err; // 如果已经重试了5次，抛出错误
+        // 如果是死锁错误，等待一段时间后重试
+        if (err.message.includes('Deadlock found when trying to get lock')) {
+          await new Promise(resolve => setTimeout(resolve, 3000)); // 等待3秒
+        } else {
+          throw err; // 如果是其他错误，直接抛出
+        }
+      }
+    }
+  }
+
   async findAll(keyword: string) {
     const query = this.planRepository.createQueryBuilder('checkPlan').orderBy('sortCode');
 
@@ -203,7 +220,9 @@ export class CheckPlanService {
     }
     
     await manager.save(newRecords)
-    await manager.save(classes)
+
+    // 避免死锁
+    await this.solveDeadlock(manager, classes)
   }
 
   private getCheckTaskName(cron: string) {
@@ -306,7 +325,7 @@ export class CheckPlanService {
           if (incompleteCheck.length > 0) item[historyStatusName] = 0
         }
 
-        await transactionalEntityManager.save(BillClass, classes)
+        await this.solveDeadlock(transactionalEntityManager, classes)
 
         // 将plan的stopRunTime清空
         checkPlan.stopRunTime = null
