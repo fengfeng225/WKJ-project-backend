@@ -19,4 +19,10 @@ export class HomeController {
   findNewCheckRecord(@Req() req) {
     return this.homeService.findNewCheckRecord(req.user.userId, req.user.account);
   }
+
+  @ApiOperation({summary:"获取本期各班组检查进度"})
+  @Get('checkProgress')
+  findCheckProgressList() {
+    return this.homeService.findCheckProgressList();
+  }
 }

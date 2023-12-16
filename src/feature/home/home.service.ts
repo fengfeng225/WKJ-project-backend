@@ -92,4 +92,39 @@ export class HomeService {
       list: records
     }
   }
+
+  async findCheckProgressList() {
+    let totalCheck = 0, list = []
+
+    const classList = await this.classRepository
+    .createQueryBuilder('class')
+    .where('class.parentId IS NOT NULL')
+    .getMany()
+
+    if (classList.length) {
+      // 获取总检查数量
+      for (let key in classList[0]) {
+        if (key.includes('CheckingStatus') && classList[0][key] !== -1) totalCheck++
+      }
+      
+      // 获取各班组检查进度
+      classList.forEach(item => {
+        let checkProgress = {
+          className: '',
+          progress: 0
+        }
+
+        for (let key in item) {
+          if (key.includes('CheckingStatus') && item[key] === 1) checkProgress.progress++
+        }
+        checkProgress.className = item.fullName
+        list.push(checkProgress)
+      })
+    }
+
+    return {
+      list,
+      totalCheck
+    }
+  }
 }
