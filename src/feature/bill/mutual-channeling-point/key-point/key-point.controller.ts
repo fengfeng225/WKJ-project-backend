@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { KeyPointService } from './key-point.service';
 import { CreateKeyPointDto } from './dto/create-key-point.dto';
 import { UpdateKeyPointDto } from './dto/update-key-point.dto';
-import { FindDto } from '../common-dto/find.dto';
+import { FindDto } from '../../dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 

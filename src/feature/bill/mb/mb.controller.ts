@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { MbService } from './mb.service';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
-import { FindAllMbDto } from './dto/findAll-mb.dto';
+import { FindDto } from '../dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 
@@ -24,8 +24,8 @@ export class MbController {
     requireButton: null
   })
   @Get('shortBill')
-  findShortBill(@Query() findAllMbDto: FindAllMbDto) {
-    return this.mbService.findShortBill(findAllMbDto);
+  findShortBill(@Query() findDto: FindDto) {
+    return this.mbService.findShortBill(findDto);
   }
 
   @ApiOperation({summary:"获取全部短期盲板"})
@@ -91,8 +91,8 @@ export class MbController {
     requireButton: null
   })
   @Get('longBill')
-  findLongBill(@Query() findAllMbDto: FindAllMbDto) {
-    return this.mbService.findLongBill(findAllMbDto);
+  findLongBill(@Query() findDto: FindDto) {
+    return this.mbService.findLongBill(findDto);
   }
 
   @ApiOperation({summary:"获取全部长期盲板"})
@@ -157,8 +157,8 @@ export class MbController {
     requireButton: null
   })
   @Get('bill/disassembleDetails')
-  findDisassembleDetails(@Query() findAllMbDto: FindAllMbDto) {
-    return this.mbService.findDisassembleDetails(findAllMbDto);
+  findDisassembleDetails(@Query() findDto: FindDto) {
+    return this.mbService.findDisassembleDetails(findDto);
   }
 
   @ApiOperation({summary:"删除拆装明细"})

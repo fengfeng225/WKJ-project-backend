@@ -158,6 +158,7 @@ export class ClassService {
     const checkRecords = await this.recordRepository
     .createQueryBuilder('record')
     .where('checking = 1')
+    .andWhere('checkStatus = 0')
     .andWhere('entityCode = :type', {type})
     .andWhere('classId IN (:...classIds)', {classIds})
     .getMany()
@@ -223,9 +224,11 @@ export class ClassService {
           checking: 0,
           checkStatus: -1,
           classId: record.classId,
-          entityCode: record.entityCode
+          entityCode: record.entityCode,
+          id: Not(record.id)
         }
       })
+
       if (incompleteCheck.length === 0) {
         const currentClass = await this.classRepository.findOne({
           where: {

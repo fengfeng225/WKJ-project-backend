@@ -51,6 +51,6 @@ export class UpdateUserDto {
     example:"[]",
     description:"绑定角色id"
   })
-  @IsArray()
+  @IsOptional()
   roleId: Array<string>;
 }

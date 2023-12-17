@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { UndergroundSludgeOilService } from './underground-sludge-oil.service';
 import { CreateUndergroundSludgeOilDto } from './dto/create-underground-sludge-oil.dto';
 import { UpdateUndergroundSludgeOilDto } from './dto/update-underground-sludge-oil.dto';
-import { FindDto } from '../common-dto/find.dto';
+import { FindDto } from '../../dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 

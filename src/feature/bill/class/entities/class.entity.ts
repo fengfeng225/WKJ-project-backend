@@ -20,6 +20,7 @@ import { HeatExchanger } from '../../mutual-channeling-point/heat-exchanger/enti
 import { Container } from '../../mutual-channeling-point/container/entities/container.entity';
 import { KeyPoint } from '../../mutual-channeling-point/key-point/entities/key-point.entity';
 import { OtherPoint } from '../../mutual-channeling-point/other-point/entities/other-point.entity';
+import { PipeCap } from '../../pipe-cap/entities/pipe-cap.entity';
 
 @Entity()
 export class BillClass {
@@ -137,6 +138,20 @@ export class BillClass {
 
   @Column({
     type: 'int',
+    default: -1,
+    comment: '当前管帽放空检查'
+  })
+  pipeCapCheckingStatus: number;
+
+  @Column({
+    type: 'int',
+    default: -1,
+    comment: '历史管帽放空检查'
+  })
+  pipeCapCheckedStatus: number;
+
+  @Column({
+    type: 'int',
     default: 0,
     comment: '排序'
   })
@@ -183,6 +198,9 @@ export class BillClass {
 
   @OneToMany(() => OtherPoint, (otherPoint) => otherPoint.class)
   otherPoints: OtherPoint[]
+
+  @OneToMany(() => PipeCap, (pipeCap) => pipeCap.class)
+  pipeCaps: PipeCap[]
 
   @OneToMany(() => CheckRecord, (checkRecord) => checkRecord.class)
   records: CheckRecord[]

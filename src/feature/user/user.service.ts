@@ -127,13 +127,17 @@ export class UserService {
     })
     if (isExist) throw new ConflictException('账户或名称重复')
 
-    const roles = await this.roleRepository
-    .createQueryBuilder('role')
-    .where('role.id in (:...roleId)', {roleId: createUserDto.roleId})
-    .getMany()
-
     const entity = this.userRepository.create(createUserDto)
-    entity.roles = roles
+
+    if (createUserDto.roleId.length) {
+      const roles = await this.roleRepository
+      .createQueryBuilder('role')
+      .where('role.id in (:...roleId)', {roleId: createUserDto.roleId})
+      .getMany()
+      entity.roles = roles
+    }
+    
+    entity.roles = []
     await this.userRepository.save(entity)
   }
 
@@ -155,13 +159,17 @@ export class UserService {
 
     if (isExist) throw new ConflictException('名称或编码重复')
 
-    const roles = await this.roleRepository
-    .createQueryBuilder('role')
-    .where('role.id in (:...roleId)', {roleId: updateUserDto.roleId})
-    .getMany()
-    
     const entity = this.userRepository.create(updateUserDto)
-    entity.roles = roles
+    if (updateUserDto.roleId.length) {
+      console.log(1231)
+      const roles = await this.roleRepository
+      .createQueryBuilder('role')
+      .where('role.id in (:...roleId)', {roleId: updateUserDto.roleId})
+      .getMany()
+      entity.roles = roles
+    }
+
+    entity.roles = []
     await this.userRepository.save(entity)
   }
 

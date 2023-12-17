@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { OtherPointService } from './other-point.service';
 import { CreateOtherPointDto } from './dto/create-other-point.dto';
 import { UpdateOtherPointDto } from './dto/update-other-point.dto';
-import { FindDto } from '../common-dto/find.dto';
+import { FindDto } from '../../dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 

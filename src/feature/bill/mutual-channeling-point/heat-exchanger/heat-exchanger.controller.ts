@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/
 import { HeatExchangerService } from './heat-exchanger.service';
 import { CreateHeatExchangerDto } from './dto/create-heat-exchanger.dto';
 import { UpdateHeatExchangerDto } from './dto/update-heat-exchanger.dto';
-import { FindDto } from '../common-dto/find.dto';
+import { FindDto } from '../../dto/find.dto';
 import { ApiQuery, ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { RequirePermission } from 'src/decorators/require-permission';
 

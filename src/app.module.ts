@@ -28,6 +28,7 @@ import { HeatExchangerModule } from './feature/bill/mutual-channeling-point/heat
 import { ContainerModule } from './feature/bill/mutual-channeling-point/container/container.module';
 import { KeyPointModule } from './feature/bill/mutual-channeling-point/key-point/key-point.module';
 import { OtherPointModule } from './feature/bill/mutual-channeling-point/other-point/other-point.module';
+import { PipeCapModule } from './feature/bill/pipe-cap/pipe-cap.module';
 
 @Module({
   imports: [
@@ -67,7 +68,8 @@ import { OtherPointModule } from './feature/bill/mutual-channeling-point/other-p
     HeatExchangerModule,
     ContainerModule,
     KeyPointModule,
-    OtherPointModule
+    OtherPointModule,
+    PipeCapModule
   ],
   controllers: [AppController],
   providers: [
