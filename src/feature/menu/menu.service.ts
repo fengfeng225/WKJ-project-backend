@@ -15,27 +15,6 @@ export class MenuService {
     private dataSource: DataSource
   ){}
 
-  private buildMenuTree(flatMenus: Menu[]): Menu[] {
-    const menuMap = new Map<string, Menu>();
-    const result: Menu[] = [];
-
-    for (const menu of flatMenus) {
-      menuMap.set(menu.id, menu);
-    }
-
-    for (const menu of flatMenus) {
-      if (menu.parentId && menuMap.has(menu.parentId)) {
-        const parent = menuMap.get(menu.parentId);
-        if (!parent.children) parent.children = [];
-        parent.children.push(menu);
-      } else {
-        result.push(menu);
-      }
-    }
-
-    return result;
-  }
-
   async create(createMenuDto: CreateMenuDto) {    
     const isExist = await this.menuRepository.findOne({
       where: [

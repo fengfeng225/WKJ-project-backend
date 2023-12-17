@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, DataSource } from 'typeorm';
+import { Repository, Not } from 'typeorm';
+import { instanceToPlain } from 'class-transformer';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { FixRecordDto } from './dto/fix-record.dto';
@@ -13,16 +14,35 @@ export class ClassService {
     @InjectRepository(BillClass)
     private readonly classRepository:Repository<BillClass>,
     @InjectRepository(CheckRecord)
-    private readonly recordRepository:Repository<CheckRecord>,
-    private dataSource: DataSource
+    private readonly recordRepository:Repository<CheckRecord>
   ){}
+
+  private buildClassTree(flatClassList): BillClass[] {
+    const classMap = new Map<string, BillClass>();
+    const result: BillClass[] = [];
+
+    for (const item of flatClassList) {
+      classMap.set(item.id, item);
+    }
+
+    for (const item of flatClassList) {
+      if (item.parentId && classMap.has(item.parentId)) {
+        const parent = classMap.get(item.parentId);
+        if (!parent.children) parent.children = [];
+        parent.children.push(item);
+      } else {
+        result.push(item);
+      }
+    }
+
+    return result;
+  }
 
   // classBasic
   async findAllClass(keyword: string): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
     .leftJoinAndSelect('class.children', 'children')
-    .select(['class.id', 'class.fullName', 'class.creatorTime', 'class.sortCode', 'children.id', 'children.fullName', 'children.creatorTime', 'children.sortCode'])
     .where('class.parentId IS NULL')
     .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword ?? ''}%`})
     .orderBy('class.sortCode')
@@ -37,7 +57,6 @@ export class ClassService {
   async findClassSelector(): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
-    .select(['class.id', 'class.fullName'])
     .where('class.parentId IS NULL')
     .orderBy('class.sortCode')
     .getMany()
@@ -50,7 +69,6 @@ export class ClassService {
   async findClassLeaf(): Promise<{list: BillClass[]}> {
     const list = await this.classRepository
     .createQueryBuilder('class')
-    .select(['class.id', 'class.fullName'])
     .where('class.parentId IS NOT NULL')
     .orderBy('class.sortCode')
     .getMany()
@@ -134,17 +152,46 @@ export class ClassService {
   }
 
   async findAllClassWithCheckStatus(keyword: string): Promise<{list: BillClass[]}> {
-    const list = await this.classRepository
+    const allClass = await this.classRepository
     .createQueryBuilder('class')
-    .leftJoinAndSelect('class.children', 'children')
-    .where('class.parentId IS NULL')
-    .andWhere('class.fullName LIKE :keyword OR children.fullName LIKE :keyword', {keyword: `%${keyword}%`})
-    .orderBy('class.sortCode')
-    .addOrderBy('children.sortCode')
+    .where('fullName LIKE :keyword', {keyword: `%${keyword}%`})
+    .orderBy('sortCode')
     .getMany()
 
+    const list = instanceToPlain(allClass)
+
+    const currentRecords = await this.recordRepository
+    .createQueryBuilder('record')
+    .where('checking = 1')
+    .getMany()
+
+    const historyRecords = await this.recordRepository
+    .createQueryBuilder('record')
+    .where('checking = 0')
+    .getMany()
+
+    list.forEach(item => {
+      const classCurrentRecords = currentRecords.filter(record => record.classId === item.id)
+      const classHistoryRecords = historyRecords.filter(record => record.classId === item.id)
+
+      // 当前检查状态
+      classCurrentRecords.forEach(record => {
+        item[record.entityCode + 'CheckingStatus'] = record.checkStatus
+      })
+
+      // 历史检查状态
+      const recordEntityCode = [...new Set(classHistoryRecords.map(record => record.entityCode))]
+      recordEntityCode.forEach(entityCode => {
+        const abnormal = classHistoryRecords.some(record => record.entityCode === entityCode && record.checkStatus === -1)
+        if (abnormal) item[entityCode + 'CheckedStatus'] = 0
+        else item[entityCode + 'CheckedStatus'] = 1
+      })
+    })
+
+    const classTreeData = this.buildClassTree(list)
+
     return {
-      list
+      list: classTreeData
     }
   }
 
@@ -171,18 +218,8 @@ export class ClassService {
       item.checkStatus = 1
       item.checkedTime = new Date()
     })
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.save(CheckRecord, checkRecords)
 
-      // 将对应班组当前检查状态改为完成
-      const classes = await this.classRepository
-      .createQueryBuilder('class')
-      .where('id IN (:...classIds)', {classIds})
-      .getMany()
-      const currentStatusName = type + 'CheckingStatus'
-      classes.forEach(item => item[currentStatusName] = 1)
-      await transactionalEntityManager.save(BillClass, classes)
-    })
+    await this.recordRepository.save(checkRecords)
   }
 
   async getRecords(id: string, type: string) {
@@ -212,32 +249,9 @@ export class ClassService {
     if (!record) throw new NotFoundException('没有找到该记录')
     if (record.checkStatus !== -1) throw new ForbiddenException('禁止修改！')
 
-    await this.dataSource.transaction(async (transactionalEntityManager) => {
-      // 修改历史检查记录
-      record.checkStatus = 2
-      record.description = fixRecordDto.description
-      await transactionalEntityManager.save(CheckRecord, record)
-
-      // 更新对应班组历史检查状态
-      const incompleteCheck = await this.recordRepository.find({
-        where: {
-          checking: 0,
-          checkStatus: -1,
-          classId: record.classId,
-          entityCode: record.entityCode,
-          id: Not(record.id)
-        }
-      })
-
-      if (incompleteCheck.length === 0) {
-        const currentClass = await this.classRepository.findOne({
-          where: {
-            id: record.classId
-          }
-        })
-        currentClass[record.entityCode + 'CheckedStatus'] = 1
-        await transactionalEntityManager.save(BillClass, currentClass)
-      }
-    })
+    // 修改历史检查记录
+    record.checkStatus = 2
+    record.description = fixRecordDto.description
+    await this.recordRepository.save(record)
   }
 }

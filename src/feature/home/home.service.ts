@@ -102,10 +102,17 @@ export class HomeService {
     .getMany()
 
     if (classList.length) {
-      // 获取总检查数量
-      for (let key in classList[0]) {
-        if (key.includes('CheckingStatus') && classList[0][key] !== -1) totalCheck++
-      }
+      const records = await this.recordRepository
+      .createQueryBuilder('record')
+      .where('checking = 1')
+      .getMany()
+
+      // 这里通过第一个班组的检查记录，获取总检查数量
+      const firstClassId = classList[0].id
+      totalCheck = records.reduce((total, record) => {
+        if(record.classId === firstClassId) return ++total
+        return total
+      }, 0)
       
       // 获取各班组检查进度
       classList.forEach(item => {
@@ -114,9 +121,12 @@ export class HomeService {
           progress: 0
         }
 
-        for (let key in item) {
-          if (key.includes('CheckingStatus') && item[key] === 1) checkProgress.progress++
-        }
+        const currentClassRecords = records.filter(record => record.classId === item.id)
+        checkProgress.progress = currentClassRecords.reduce((total, record) => {
+          if (record.checkStatus === 1) return ++total
+          return total
+        }, 0)
+
         checkProgress.className = item.fullName
         list.push(checkProgress)
       })

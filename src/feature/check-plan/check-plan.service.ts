@@ -29,23 +29,6 @@ export class CheckPlanService {
 
   private logger: CustomLogger = new CustomLogger('CheckPlan')
 
-  private async solveDeadlock(manager: EntityManager, entities) {
-    for (let i = 0; i < 5; i++) { // 尝试5次
-      try {
-        await manager.save(entities)
-        break; // 如果事务成功，跳出循环
-      } catch (err) {
-        if (i === 4) throw err; // 如果已经重试了5次，抛出错误
-        // 如果是死锁错误，等待一段时间后重试
-        if (err.message.includes('Deadlock found when trying to get lock')) {
-          await new Promise(resolve => setTimeout(resolve, 3000)); // 等待3秒
-        } else {
-          throw err; // 如果是其他错误，直接抛出
-        }
-      }
-    }
-  }
-
   async findAll(keyword: string) {
     const query = this.planRepository.createQueryBuilder('checkPlan').orderBy('sortCode');
 
@@ -187,44 +170,6 @@ export class CheckPlanService {
     this.addTimeout(checkPlan)
   }
 
-  async updateClassCheck(classes: BillClass[], plan: CheckPlan, manager: EntityManager) {
-    const currentStatusName = plan.entityCode + 'CheckingStatus'
-    const historyStatusName = plan.entityCode + 'CheckedStatus'
-
-    // 添加新一轮记录
-    const newRecords: CheckRecord[] = []
-
-    // 遍历班组
-    for (const item of classes) {
-      // 将班组本期检查状态改为待检查
-      item[currentStatusName] = 0
-      // 更新历史检查状态
-      const incompleteCheck = await this.recordRepository.find({
-        where: {
-          checking: 0,
-          checkStatus: -1,
-          classId: item.id,
-          entityCode: plan.entityCode
-        }
-      })
-      if (incompleteCheck.length > 0) item[historyStatusName] = 0
-
-      const checkRecord = new CheckRecord()
-      checkRecord.fullName = this.getCheckTaskName(plan.cron)
-      checkRecord.type = plan.fullName
-      checkRecord.entityCode = plan.entityCode
-      checkRecord.checkStatus = 0
-      checkRecord.checking = 1
-      checkRecord.classId = item.id
-      newRecords.push(checkRecord)
-    }
-    
-    await manager.save(newRecords)
-
-    // 避免死锁
-    await this.solveDeadlock(manager, classes)
-  }
-
   private getCheckTaskName(cron: string) {
     const cycle = this.getCycle(cron)
 
@@ -284,15 +229,6 @@ export class CheckPlanService {
 
   private addTimeout(checkPlan: CheckPlan) {
     const callback = async () => {
-      // 获取班组
-      const classes = await this.classRepository
-      .createQueryBuilder('class')
-      .where('class.parentId IS NOT NULL')
-      .getMany()
-
-      const currentStatusName = checkPlan.entityCode + 'CheckingStatus'
-      const historyStatusName = checkPlan.entityCode + 'CheckedStatus'
-
       // 开启事务
       await this.dataSource.transaction(async (transactionalEntityManager) => {      
         // 获取进行中的记录, 并结束进行中的检查
@@ -308,24 +244,6 @@ export class CheckPlanService {
           record.checking = 0
         })
         await transactionalEntityManager.save(CheckRecord, records)
-
-        // 更新班组检查状态
-        for (const item of classes) {
-          // 将班组本期检查状态改为空
-          item[currentStatusName] = -1
-          // 更新历史检查状态
-          const incompleteCheck = await this.recordRepository.find({
-            where: {
-              checking: 0,
-              checkStatus: -1,
-              classId: item.id,
-              entityCode: checkPlan.entityCode
-            }
-          })
-          if (incompleteCheck.length > 0) item[historyStatusName] = 0
-        }
-
-        await this.solveDeadlock(transactionalEntityManager, classes)
 
         // 将plan的stopRunTime清空
         checkPlan.stopRunTime = null
@@ -398,8 +316,20 @@ export class CheckPlanService {
             await this.dataSource.transaction(async (transactionalEntityManager) => {
               if (checkingRecords.length > 0) await transactionalEntityManager.save(CheckRecord, checkingRecords)
 
-              // 更新班组检查状态
-              await this.updateClassCheck(classes, newPlan, transactionalEntityManager)
+              // 添加新一轮检查纪录
+              const newRecords: CheckRecord[] = []
+              for (const item of classes) {
+                const checkRecord = new CheckRecord()
+                checkRecord.fullName = this.getCheckTaskName(newPlan.cron)
+                checkRecord.type = newPlan.fullName
+                checkRecord.entityCode = newPlan.entityCode
+                checkRecord.checkStatus = 0
+                checkRecord.checking = 1
+                checkRecord.classId = item.id
+                newRecords.push(checkRecord)
+              }
+              
+              await transactionalEntityManager.save(newRecords)
 
               // 更新计划信息 runCount lastRunTime nextRunTime
               newPlan.runCount = newPlan.runCount + 1

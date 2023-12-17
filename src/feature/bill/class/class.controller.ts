@@ -45,19 +45,19 @@ export class ClassController {
   }
 
   // 班组基本信息
-  @ApiOperation({summary:"获取班组id和名称"})
+  @ApiOperation({summary:"获取所有班组"})
   @Get('basic')
   findAllClass(@Query('keyword') keyword: string) {
     return this.classService.findAllClass(keyword);
   }
 
-  @ApiOperation({summary:"获取父级班组id和名称"})
+  @ApiOperation({summary:"获取父级班组"})
   @Get('basic/selector')
   findClassSelector() {
     return this.classService.findClassSelector();
   }
 
-  @ApiOperation({summary:"获取子级班组id和名称"})
+  @ApiOperation({summary:"获取子级班组"})
   @Get('basic/leaf')
   findClassLeaf() {
     return this.classService.findClassLeaf();

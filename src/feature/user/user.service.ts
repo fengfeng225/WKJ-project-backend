@@ -5,8 +5,6 @@ import { instanceToPlain } from 'class-transformer';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 import { Menu } from '../menu/entities/menu.entity';
-import { Button_permission } from 'src/feature/button/entities/button_permission.entity';
-import { Column_permission } from 'src/feature/column/entities/column_permission.entity';
 import { BillClass } from '../bill/class/entities/class.entity';
 import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
@@ -137,7 +135,6 @@ export class UserService {
       entity.roles = roles
     }
     
-    entity.roles = []
     await this.userRepository.save(entity)
   }
 
@@ -161,15 +158,15 @@ export class UserService {
 
     const entity = this.userRepository.create(updateUserDto)
     if (updateUserDto.roleId.length) {
-      console.log(1231)
       const roles = await this.roleRepository
       .createQueryBuilder('role')
       .where('role.id in (:...roleId)', {roleId: updateUserDto.roleId})
       .getMany()
       entity.roles = roles
+    } else {
+      entity.roles = []
     }
-
-    entity.roles = []
+    
     await this.userRepository.save(entity)
   }
 
