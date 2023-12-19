@@ -43,6 +43,15 @@ export class CheckPlanService {
 
   async findOne(id: string) {
     const checkPlan = await this.planRepository.findOne({
+      select: {
+        id: true,
+        fullName: true,
+        entityCode: true,
+        description: true,
+        cron: true,
+        expiringDays: true,
+        sortCode: true
+      },
       where: {
         id
       }
@@ -282,11 +291,11 @@ export class CheckPlanService {
             job.context.execute = 'automatic'
 
             const classes = await this.classRepository
-              .createQueryBuilder('class')
-              .where('class.parentId IS NOT NULL')
-              .getMany()
+            .createQueryBuilder('class')
+            .where('class.parentId IS NOT NULL')
+            .getMany()
 
-            // 获取进行中的记录, 并结束进行中的检查
+            // 获取进行中的记录
             const checkingRecords = await this.recordRepository
             .createQueryBuilder('record')
             .where('checking = 1')

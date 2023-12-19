@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
@@ -25,9 +26,11 @@ async function bootstrap() {
 
   // 设置允许跨域访问
   // app.enableCors();
+
+  const configService = app.get(ConfigService)
   
-  const historyRouter = JSON.parse(process.env.HISTORY_ROUTER)
-  const swaggerEnabled = JSON.parse(process.env.SWAGGER_ENABLED)
+  const historyRouter = JSON.parse(configService.get('HISTORY_ROUTER'))
+  const swaggerEnabled = JSON.parse(configService.get('SWAGGER_ENABLED'))
 
   // 配置仅生产环境托管静态资源
   if (historyRouter) {

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class UpdateCheckPlanDto {
   @ApiProperty({
@@ -25,6 +25,13 @@ export class UpdateCheckPlanDto {
   @IsNotEmpty()
   @IsString()
   cron: string;
+
+  @ApiProperty({
+    example:"number",
+    description:"有效期"
+  })
+  @IsOptional()
+  expiringDays: number;
 
   @ApiProperty({
     example:"number",
