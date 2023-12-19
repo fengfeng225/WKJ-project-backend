@@ -1,11 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
-import envConfig from 'config/envConfig';
+import { AppModule } from './app.module';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
@@ -28,13 +26,9 @@ async function bootstrap() {
   // 设置允许跨域访问
   // app.enableCors();
   
-  const configService = new ConfigService({
-    envFilePath: [envConfig.path],
-  });
-  
-  const historyRouter = JSON.parse(configService.get<string>('HISTORY_ROUTER'));
-  const swaggerEnabled = JSON.parse(configService.get<string>('SWAGGER_ENABLED'));
-  
+  const historyRouter = JSON.parse(process.env.HISTORY_ROUTER)
+  const swaggerEnabled = JSON.parse(process.env.SWAGGER_ENABLED)
+
   // 配置仅生产环境托管静态资源
   if (historyRouter) {
     app.use(history());
