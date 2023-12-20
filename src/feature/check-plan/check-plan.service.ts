@@ -180,6 +180,7 @@ export class CheckPlanService {
     
     checkPlan.enabledMark = 1
     checkPlan.stopRunTime = null
+    checkPlan.nextRunTime = this.getNextTime(checkPlan.cron)
     checkPlan.lastModifyTime = new Date()
 
     // 若没有截止时间，则移除到期处理本轮记录的任务
