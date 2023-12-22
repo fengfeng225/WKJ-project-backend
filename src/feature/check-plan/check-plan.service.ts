@@ -50,6 +50,7 @@ export class CheckPlanService {
         description: true,
         cron: true,
         expiringDays: true,
+        workCycle: true,
         sortCode: true
       },
       where: {
@@ -94,8 +95,6 @@ export class CheckPlanService {
       job.setTime(cronTime)
       if (checkPlan.enabledMark === 1) entity.nextRunTime = job.nextDate().toJSDate()
     }
-
-    if (!entity.expiringDays) entity.expiringDays = null
 
     const oldExpiringDays = checkPlan.expiringDays
     const newExpiringDays = entity.expiringDays
