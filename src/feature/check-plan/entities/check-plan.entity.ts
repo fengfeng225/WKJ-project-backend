@@ -93,14 +93,6 @@ export class CheckPlan {
   stopRunTime: Date;
 
   @Column({
-    nullable: true,
-    select: false,
-    type: 'timestamp',
-    comment: '解冻时间'
-  })
-  unfrozenTime: Date;
-
-  @Column({
     type: 'int',
     default: 0,
     comment: '排序'
