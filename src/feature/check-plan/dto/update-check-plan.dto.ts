@@ -36,13 +36,6 @@ export class UpdateCheckPlanDto {
 
   @ApiProperty({
     example:"number",
-    description:"生效周期"
-  })
-  @IsNumber()
-  workCycle: number;
-
-  @ApiProperty({
-    example:"number",
     description:"排序"
   })
   @IsNumber()

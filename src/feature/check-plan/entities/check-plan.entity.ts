@@ -57,13 +57,6 @@ export class CheckPlan {
   stopCron: string;
 
   @Column({
-    default: 1,
-    type: 'int',
-    comment: '生效周期' // 0表示立即生效，1表示从下轮生效
-  })
-  workCycle: number;
-
-  @Column({
     nullable: true,
     type: 'timestamp',
     comment: '最后下发时间'
