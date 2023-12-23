@@ -131,19 +131,14 @@ export class CheckPlanService {
       const now = new Date().getTime()
       const newStopCheckTime = this.getNextTime(newStopCron).getTime() // 新的截止日期
 
-      if (!checkPlan.stopCheckTime) { // 无截止日期，保存
+      if (!checkPlan.stopCheckTime || checkPlan.stopCheckTime && now > checkPlan.stopCheckTime.getTime()) { // 无截止日期或有截止日期并且已过，直接保存
         entity.lastModifyTime = new Date()
         await this.planRepository.save(entity)
-        // 若任务是开启状态，立即执行
-        if (checkPlan.enabledMark === 1) {
+        // 若无截止日期并且任务是开启状态，立即执行
+        if (!checkPlan.stopCheckTime && checkPlan.enabledMark === 1) {
           job.context.execute = 'manual'
           job.fireOnTick()
         }
-      }
-
-      if (checkPlan.stopCheckTime && now > checkPlan.stopCheckTime.getTime()) { // 有截止日期并且已过，直接保存
-        entity.lastModifyTime = new Date()
-        await this.planRepository.save(entity)
       }
 
       if (checkPlan.stopCheckTime && now < checkPlan.stopCheckTime.getTime()) { // 有截止日期但没过
