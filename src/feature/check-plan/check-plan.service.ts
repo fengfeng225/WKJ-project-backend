@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException, Injectable, ForbiddenException, HttpException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, EntityManager, Not } from 'typeorm';
+import { Repository, DataSource, Not } from 'typeorm';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { CronJob, CronTime } from 'cron';
@@ -95,7 +95,7 @@ export class CheckPlanService {
     if (!stopCronValid) throw new ForbiddenException('无效的截止日期，请重试！')
 
     // 分别修改
-    if (oldCron !== newCron && oldStopCron === newStopCron) { // 只修改了检查周期
+    if (oldCron !== newCron) { // 只要修改了检查周期，无论是否修改截止日期
       // 更新任务后续的执行日期
       const cronTime = new CronTime(newCron)
       job.setTime(cronTime)
@@ -110,16 +110,16 @@ export class CheckPlanService {
       // 若任务是开启状态，更新下次下发日期
       entity.nextRunTime = job.nextDate().toJSDate()
 
-      if (!checkPlan.stopCheckTime || checkPlan.stopCheckTime.getTime() <= new Date().getTime()) { // 若无截止日期或当前过了截止日期，保存更改，立即执行任务（判断是否在更新后的检查期内）
+      if (!checkPlan.stopCheckTime || new Date(checkPlan.stopCheckTime).getTime() <= new Date().getTime()) { // 若无截止日期或当前过了截止日期，保存更改，立即执行任务（判断是否在更新后的检查期内）
         entity.lastModifyTime = new Date()
         await this.planRepository.save(entity)
         job.context.execute = 'manual'
         job.fireOnTick()
       } else { // 若有截止日期并且当前没到截止日期
-        if (checkPlan.stopCheckTime.getTime() > entity.nextRunTime.getTime()) {
+        if (new Date(checkPlan.stopCheckTime).getTime() > entity.nextRunTime.getTime()) {
           // 若下次下发日期早于截止日期，则将截止日期改为下次下发日期，并移除定时器
           entity.stopCheckTime = entity.nextRunTime
-          this.removeTimeout(checkPlan.entityCode)
+          this.removeStopCheckTask(checkPlan.entityCode + 'stopCheck')
         }
 
         entity.lastModifyTime = new Date()
@@ -129,9 +129,8 @@ export class CheckPlanService {
 
     if (oldCron === newCron && oldStopCron !== newStopCron) { // 只修改了截止日期
       const now = new Date().getTime()
-      const newStopCheckTime = this.getNextTime(newStopCron).getTime() // 新的截止日期
 
-      if (!checkPlan.stopCheckTime || checkPlan.stopCheckTime && now > checkPlan.stopCheckTime.getTime()) { // 无截止日期或有截止日期并且已过，直接保存
+      if (!checkPlan.stopCheckTime || now > new Date(checkPlan.stopCheckTime).getTime()) { // 无截止日期或有截止日期并且已过，直接保存
         entity.lastModifyTime = new Date()
         await this.planRepository.save(entity)
         // 若无截止日期并且任务是开启状态，立即执行
@@ -141,31 +140,17 @@ export class CheckPlanService {
         }
       }
 
-      if (checkPlan.stopCheckTime && now < checkPlan.stopCheckTime.getTime()) { // 有截止日期但没过
-        if (now < newStopCheckTime) { // 没过新的截止日期
-          // 更新截止日期为新截止日期
-          entity.stopCheckTime = new Date(newStopCheckTime)
-          // 若是停止状态，要额外更新 stopRunTime
-          if (checkPlan.enabledMark === 0) entity.stopRunTime = new Date(newStopCheckTime)
-          // 保存
-          entity.lastModifyTime = new Date()
-          await this.planRepository.save(entity)
-          // 更新定时器执行日期为新截止日期
-          this.addTimeout(checkPlan, new Date(newStopCheckTime))
-        } else { // 过了新截止时间
-          // 更新截止时间为当前，保存
-          entity.stopCheckTime = new Date(now)
-          // 若是停止状态，清空 stopRunTime
-          if (checkPlan.enabledMark === 0) entity.stopRunTime = null
-          entity.lastModifyTime = new Date()
-          await this.planRepository.save(entity)
-
-          // 保存后再更新定时器执行日期为当前（防止冲突）
-          this.addTimeout(checkPlan, new Date(now))
-        }
+      if (checkPlan.stopCheckTime && now < new Date(checkPlan.stopCheckTime).getTime()) { // 有截止日期但没过
+        const newStopCheckTime = this.getNextTime(newStopCron, new Date(checkPlan.lastRunTime)).getTime() // 新的截止日期
+        const maxTime = Math.max(now, newStopCheckTime)
+        const newStopTime = Math.min(maxTime, new Date(checkPlan.nextRunTime).getTime())
+        entity.stopCheckTime = new Date(newStopTime)
+        if (checkPlan.enabledMark === 0) entity.stopRunTime = new Date(newStopTime)
+        entity.lastModifyTime = new Date()
+        await this.planRepository.save(entity)
+        // 保存后再更新定时器执行日期（防止冲突）
+        this.addStopCheckTask(checkPlan, new Date(newStopTime))
       }
-
-
     }
   }
 
@@ -214,7 +199,7 @@ export class CheckPlanService {
     await this.planRepository.save(checkPlan)
 
     // 移除定时器
-    this.removeTimeout(checkPlan.entityCode)
+    this.removeStopCheckTask(checkPlan.entityCode + 'stopCheck')
 
     // 开启任务并立即执行
     const job = this.schedulerRegistry.getCronJob(checkPlan.entityCode)
@@ -241,7 +226,7 @@ export class CheckPlanService {
     checkPlan.enabledMark = 0
     checkPlan.nextRunTime = null
     // 若有截止日期并且当前没到截止日期，添加 stopRunTime  以防止服务器重启之后能为进行中的检查添加定时器
-    if (checkPlan.stopCheckTime && checkPlan.stopCheckTime.getTime() > new Date().getTime()) checkPlan.stopRunTime = checkPlan.stopCheckTime
+    if (checkPlan.stopCheckTime && new Date(checkPlan.stopCheckTime).getTime() > new Date().getTime()) checkPlan.stopRunTime = checkPlan.stopCheckTime
 
     checkPlan.lastModifyTime = new Date()
     await this.planRepository.save(checkPlan)
@@ -304,11 +289,11 @@ export class CheckPlanService {
     }
   }
 
-  private addTimeout(checkPlan: CheckPlan, stopTime: Date) {
+  private addStopCheckTask(checkPlan: CheckPlan, executeDate: Date) {
     // 避免有重复任务，先删除再添加
-    this.removeTimeout(checkPlan.entityCode)
+    this.removeStopCheckTask(checkPlan.entityCode + 'stopCheck')
 
-    const callback = async () => {
+    const job = new CronJob(new Date(executeDate), async () => {
       // 获取最新的plan，可能用户更新过
       const newPlan = await this.planRepository.findOne({
         where: {
@@ -337,19 +322,20 @@ export class CheckPlanService {
         }
       })
 
-      this.schedulerRegistry.deleteTimeout(newPlan.entityCode);
+      this.removeStopCheckTask(newPlan.entityCode + 'stopCheck')
       this.logger.log(`本期${newPlan.fullName}检查已截止`, 'ScheduledTask')
-    };
+    })
   
-    const milliseconds = new Date(stopTime).getTime() - new Date().getTime()
-    const timeout = setTimeout(callback, milliseconds);
-    this.schedulerRegistry.addTimeout(checkPlan.entityCode, timeout);
+    this.schedulerRegistry.addCronJob(checkPlan.entityCode + 'stopCheck', job)
   }
 
-  private removeTimeout(entityCode: string) {
-    const timeouts = this.schedulerRegistry.getTimeouts()
-    const hasTimeout = timeouts.some(name => name === entityCode)
-    if (hasTimeout) this.schedulerRegistry.deleteTimeout(entityCode)
+  private removeStopCheckTask(name: string) {
+    const jobs = this.schedulerRegistry.getCronJobs()
+    let hasJob = false
+    jobs.forEach((value, key) => {
+      if (name === key) hasJob = true
+    })
+    if (hasJob) this.schedulerRegistry.deleteCronJob(name)
   }
 
   // 结算本轮记录
@@ -364,8 +350,8 @@ export class CheckPlanService {
   private isInInspectionPeriod (checkPlan: CheckPlan) {
     const now = new Date().getTime() // 当前时间
     const prevRunTime = this.getPrevTime(checkPlan.cron).getTime() // cron上次运行时间
-    const lastRunTime = checkPlan.lastRunTime?.getTime() // 该检查最后下发时间
-    const stopCheckTime = this.getNextTime(checkPlan.cron, new Date(prevRunTime)).getTime()// 在cron上次运行时间之后最近的截止时间
+    const lastRunTime = checkPlan.lastRunTime ? new Date(checkPlan.lastRunTime).getTime() : 0 // 该检查最后下发时间
+    const stopCheckTime = this.getNextTime(checkPlan.stopCron, new Date(prevRunTime)).getTime()// 在cron上次运行时间之后最近的截止时间
 
     return now < stopCheckTime && prevRunTime > lastRunTime // 在检查期且并非上次检查周期
   }
@@ -412,13 +398,13 @@ export class CheckPlanService {
 
               if (checkingRecords.length > 0) { // 有进行中的检查
                 // 获取截止日期和下次下发日期的时间戳
-                const stopCheckTime = newPlan.stopCheckTime.getTime()
-                const nextRunTime = newPlan.nextRunTime.getTime()
+                const stopCheckTime = new Date(newPlan.stopCheckTime).getTime()
+                const nextRunTime = new Date(newPlan.nextRunTime).getTime()
                 
                 if (now < stopCheckTime) { // 若当前在截止日期前
                   if (stopCheckTime < nextRunTime) { // 截止日期在下次下发日期前
                     // 添加定时器
-                    this.addTimeout(newPlan, newPlan.stopCheckTime)
+                    this.addStopCheckTask(newPlan, newPlan.stopCheckTime)
                   } else {
                     // 否则 修改截止日期为下次下发日期
                     newPlan.stopCheckTime = newPlan.nextRunTime
@@ -515,7 +501,7 @@ export class CheckPlanService {
 
         // 停用状态，并有stopRunTime，开启定时结束检查任务
         if (plan.enabledMark === 0 && plan.stopRunTime) {
-          this.addTimeout(plan, plan.stopRunTime)
+          this.addStopCheckTask(plan, plan.stopRunTime)
         }
     })
 

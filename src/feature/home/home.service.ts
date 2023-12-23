@@ -79,7 +79,7 @@ export class HomeService {
     .leftJoin('bill_class', 'class', 'record.classId = class.id')
     .leftJoin('check_plan', 'plan', 'plan.entityCode = record.entityCode')
     .addSelect('class.fullName', 'className')
-    .addSelect('plan.nextRunTime', 'nextRunTime')
+    .addSelect('plan.stopCheckTime', 'stopCheckTime')
     .where('checking = 1')
     .andWhere('classId IN (:...classIds)', {classIds})
     .orderBy({
