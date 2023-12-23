@@ -51,11 +51,24 @@ export class CheckPlan {
   cron: string;
 
   @Column({
+    length: 50,
+    comment: '截止时间的cron表达式'
+  })
+  stopCron: string;
+
+  @Column({
     nullable: true,
     type: 'timestamp',
     comment: '最后下发时间'
   })
   lastRunTime: Date;
+
+  @Column({
+    nullable: true,
+    type: 'timestamp',
+    comment: '检查截止时间'
+  })
+  stopCheckTime: Date;
 
   @Column({
     nullable: true,
@@ -86,7 +99,7 @@ export class CheckPlan {
   })
   enabledMark: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '创建时间' })
   creatorTime: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', select: false, comment: '上次更新时间' })

@@ -20,7 +20,6 @@ import { DictionaryModule } from './feature/system-data/dictionary/dictionary.mo
 import { HomeModule } from './feature/home/home.module';
 import { CheckPlanModule } from './feature/check-plan/check-plan.module';
 import { ClassModule } from './feature/bill/class/class.module';
-import envConfig from 'config/envConfig';
 import { CustomLogger } from 'src/core/logger/custom-logger-service';
 import { LogModule } from './log/log.module';
 import { UndergroundSludgeOilModule } from './feature/bill/mutual-channeling-point/underground-sludge-oil/underground-sludge-oil.module';
@@ -34,7 +33,7 @@ import { PipeCapModule } from './feature/bill/pipe-cap/pipe-cap.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [envConfig.path],
+      envFilePath: process.env.NODE_ENV === 'development' ? '.env.local' : '.env.prod',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -42,11 +41,11 @@ import { PipeCapModule } from './feature/bill/pipe-cap/pipe-cap.module';
       useFactory: async (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.get<string>('DB_HOST'),
-        port: JSON.parse(configService.get<string>('DB_PORT')),
+        port: JSON.parse(configService.get('DB_PORT')),
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        synchronize: JSON.parse(configService.get<string>('DB_SYNCHRONIZE')),
+        synchronize: JSON.parse(configService.get('DB_SYNCHRONIZE')),
         autoLoadEntities: true,
         dateStrings: true,
       })

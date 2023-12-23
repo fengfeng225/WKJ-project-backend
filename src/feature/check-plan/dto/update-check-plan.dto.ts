@@ -27,6 +27,14 @@ export class UpdateCheckPlanDto {
   cron: string;
 
   @ApiProperty({
+    example:"string",
+    description:"cron表达式"
+  })
+  @IsNotEmpty()
+  @IsString()
+  stopCron: string;
+
+  @ApiProperty({
     example:"number",
     description:"排序"
   })
