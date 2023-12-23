@@ -58,7 +58,7 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(9000, () => {
+  await app.listen(9000, '0.0.0.0', () => {
     logger.log(`Now listening on: http://localhost:9000`, 'info');
   });
 }
