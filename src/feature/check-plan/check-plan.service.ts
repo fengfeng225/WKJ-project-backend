@@ -300,30 +300,48 @@ export class CheckPlanService {
           id: checkPlan.id
         }
       })
+
       // 开启事务
-      await this.dataSource.transaction(async (transactionalEntityManager) => {      
-        // 获取进行中的记录, 并结束进行中的检查
-        const records = await this.recordRepository.find({
-          where: {
-            checking: 1,
-            entityCode: newPlan.entityCode
+      let retries = 3 // 重试次数
+
+      while (retries > 0) {
+        try {
+          await this.dataSource.transaction(async (transactionalEntityManager) => {      
+            // 获取进行中的记录, 并结束进行中的检查
+            const records = await this.recordRepository.find({
+              where: {
+                checking: 1,
+                entityCode: newPlan.entityCode
+              }
+            })
+    
+            if (records.length > 0) {
+              this.finishRecords(records)
+              await transactionalEntityManager.save(CheckRecord, records)
+            }
+    
+            // 将plan的stopRunTime清空
+            if (newPlan.stopRunTime) {
+              newPlan.stopRunTime = null
+              await transactionalEntityManager.save(CheckPlan, newPlan)
+            }
+          })
+
+          this.removeStopCheckTask(newPlan.entityCode + 'stopCheck')
+          this.logger.log(`本期${newPlan.fullName}检查已截止`, 'ScheduledTask')
+
+          break; // 成功则立即退出
+        } catch (error) {
+          retries--
+
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, 2000)) // 如果失败，则两秒钟后重试
+          } else {
+            this.logger.error(`本期${newPlan.fullName}检查截止失败，失败原因: ${error.message}`, 'ScheduledTask')
           }
-        })
-
-        if (records.length > 0) {
-          this.finishRecords(records)
-          await transactionalEntityManager.save(CheckRecord, records)
         }
+      }
 
-        // 将plan的stopRunTime清空
-        if (newPlan.stopRunTime) {
-          newPlan.stopRunTime = null
-          await transactionalEntityManager.save(CheckPlan, newPlan)
-        }
-      })
-
-      this.removeStopCheckTask(newPlan.entityCode + 'stopCheck')
-      this.logger.log(`本期${newPlan.fullName}检查已截止`, 'ScheduledTask')
     })
   
     this.schedulerRegistry.addCronJob(checkPlan.entityCode + 'stopCheck', job)
@@ -370,65 +388,51 @@ export class CheckPlanService {
             }
           })
 
-          try {
-            // 获取当前任务
-            const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
-            const executeType = job.context.execute
-            // 改为自动执行标识
-            job.context.execute = 'automatic'
+          // 获取当前任务
+          const job = this.schedulerRegistry.getCronJob(newPlan.entityCode)
+          const executeType = job.context.execute
+          // 改为自动执行标识
+          job.context.execute = 'automatic'
 
-            const classes = await this.classRepository
-            .createQueryBuilder('class')
-            .where('class.parentId IS NOT NULL')
-            .getMany()
+          const classes = await this.classRepository
+          .createQueryBuilder('class')
+          .where('class.parentId IS NOT NULL')
+          .getMany()
 
-            // 获取进行中的检查记录
-            const checkingRecords = await this.recordRepository
-            .createQueryBuilder('record')
-            .where('checking = 1')
-            .andWhere('entityCode = :entityCode', {entityCode: newPlan.entityCode})
-            .getMany()
+          // 获取进行中的检查记录
+          const checkingRecords = await this.recordRepository
+          .createQueryBuilder('record')
+          .where('checking = 1')
+          .andWhere('entityCode = :entityCode', {entityCode: newPlan.entityCode})
+          .getMany()
 
-            if (executeType === 'automatic') { // 自动执行
-              // 结束进行中的检查
-              this.finishRecords(checkingRecords)
-            } else { // 手动执行
-              // 获取当前时间戳
-              const now = new Date().getTime()
+          if (executeType === 'automatic') { // 自动执行
+            // 结束进行中的检查
+            this.finishRecords(checkingRecords)
+          } else { // 手动执行
+            // 获取当前时间戳
+            const now = new Date().getTime()
 
-              if (checkingRecords.length > 0) { // 有进行中的检查
-                // 获取截止日期和下次下发日期的时间戳
-                const stopCheckTime = new Date(newPlan.stopCheckTime).getTime()
-                const nextRunTime = new Date(newPlan.nextRunTime).getTime()
-                
-                if (now < stopCheckTime) { // 若当前在截止日期前
-                  if (stopCheckTime < nextRunTime) { // 截止日期在下次下发日期前
-                    // 添加定时器
-                    this.addStopCheckTask(newPlan, newPlan.stopCheckTime)
-                  } else {
-                    // 否则 修改截止日期为下次下发日期
-                    newPlan.stopCheckTime = newPlan.nextRunTime
-                    await this.planRepository.save(newPlan)
-                  }
-                  return
+            if (checkingRecords.length > 0) { // 有进行中的检查
+              // 获取截止日期和下次下发日期的时间戳
+              const stopCheckTime = new Date(newPlan.stopCheckTime).getTime()
+              const nextRunTime = new Date(newPlan.nextRunTime).getTime()
+              
+              if (now < stopCheckTime) { // 若当前在截止日期前
+                if (stopCheckTime < nextRunTime) { // 截止日期在下次下发日期前
+                  // 添加定时器
+                  this.addStopCheckTask(newPlan, newPlan.stopCheckTime)
+                } else {
+                  // 否则 修改截止日期为下次下发日期
+                  newPlan.stopCheckTime = newPlan.nextRunTime
+                  await this.planRepository.save(newPlan)
                 }
-
-                if (now > stopCheckTime) { // 若当前已过截止日期
-                  // 结束进行中的检查
-                  this.finishRecords(checkingRecords)
-                  // 获取当前是否在检查期
-                  const inInspectionPeriod = this.isInInspectionPeriod(newPlan)
-                  // 若在，向后执行；若不在，保存退出
-                  if (!inInspectionPeriod) {
-                    newPlan.nextRunTime = job.nextDate().toJSDate()
-                    await this.planRepository.save(newPlan)
-                    await this.recordRepository.save(checkingRecords)
-                    return
-                  }
-                }
+                return
               }
 
-              if (!checkingRecords.length) { // 无进行中的检查
+              if (now > stopCheckTime) { // 若当前已过截止日期
+                // 结束进行中的检查
+                this.finishRecords(checkingRecords)
                 // 获取当前是否在检查期
                 const inInspectionPeriod = this.isInInspectionPeriod(newPlan)
                 // 若在，向后执行；若不在，保存退出
@@ -441,51 +445,75 @@ export class CheckPlanService {
               }
             }
 
-            // 多表联动，开启事务
-            await this.dataSource.transaction(async (transactionalEntityManager) => {
-              if (checkingRecords.length > 0) await transactionalEntityManager.save(CheckRecord, checkingRecords)
-
-              // 添加新一轮检查纪录
-              const newRecords: CheckRecord[] = []
-              for (const item of classes) {
-                const checkRecord = new CheckRecord()
-                checkRecord.fullName = this.getCheckTaskName(newPlan.cron)
-                checkRecord.type = newPlan.fullName
-                checkRecord.entityCode = newPlan.entityCode
-                checkRecord.checkStatus = 0
-                checkRecord.checking = 1
-                checkRecord.classId = item.id
-                newRecords.push(checkRecord)
+            if (!checkingRecords.length) { // 无进行中的检查
+              // 获取当前是否在检查期
+              const inInspectionPeriod = this.isInInspectionPeriod(newPlan)
+              // 若在，向后执行；若不在，保存退出
+              if (!inInspectionPeriod) {
+                newPlan.nextRunTime = job.nextDate().toJSDate()
+                await this.planRepository.save(newPlan)
+                return
               }
-              
-              await transactionalEntityManager.save(newRecords)
+            }
+          }
 
-              // 运行次数+1，更新最后下发日期、截止日期、下次下发日期、添加定时器（设置为截止日期）。
-              newPlan.runCount = newPlan.runCount + 1
-              newPlan.nextRunTime = job.nextDate().toJSDate()
-              newPlan.lastRunTime = job.lastDate() || new Date()
-              const stopCheckTime = this.getNextTime(newPlan.stopCron)
-              newPlan.stopCheckTime = new Date(Math.min(stopCheckTime.getTime(), newPlan.nextRunTime.getTime())) // 截止日期与下次下发日期的最小值
-             
-              await transactionalEntityManager.save(CheckPlan, newPlan)
+          let retries = 3 // 重试次数
 
-              // 创建成功日志
-              const log = new CheckPlanRunLog()
-              log.runResult = 1
-              log.description = '下发成功'
-              log.checkPlanId = newPlan.id
-              await transactionalEntityManager.save(CheckPlanRunLog, log)
-            })
+          while (retries > 0) {
+            try {
+              // 多表联动，开启事务
+              await this.dataSource.transaction(async (transactionalEntityManager) => {
+                if (checkingRecords.length > 0) await transactionalEntityManager.save(CheckRecord, checkingRecords)
+  
+                // 添加新一轮检查纪录
+                const newRecords: CheckRecord[] = []
+                for (const item of classes) {
+                  const checkRecord = new CheckRecord()
+                  checkRecord.fullName = this.getCheckTaskName(newPlan.cron)
+                  checkRecord.type = newPlan.fullName
+                  checkRecord.entityCode = newPlan.entityCode
+                  checkRecord.checkStatus = 0
+                  checkRecord.checking = 1
+                  checkRecord.classId = item.id
+                  newRecords.push(checkRecord)
+                }
+                
+                await transactionalEntityManager.save(newRecords)
+  
+                // 运行次数+1，更新最后下发日期、截止日期、下次下发日期、添加定时器（设置为截止日期）。
+                newPlan.runCount = newPlan.runCount + 1
+                newPlan.nextRunTime = job.nextDate().toJSDate()
+                newPlan.lastRunTime = job.lastDate() || new Date()
+                const stopCheckTime = this.getNextTime(newPlan.stopCron)
+                newPlan.stopCheckTime = new Date(Math.min(stopCheckTime.getTime(), newPlan.nextRunTime.getTime())) // 截止日期与下次下发日期的最小值
+               
+                await transactionalEntityManager.save(CheckPlan, newPlan)
+  
+                // 创建成功日志
+                const log = new CheckPlanRunLog()
+                log.runResult = 1
+                log.description = '下发成功'
+                log.checkPlanId = newPlan.id
+                await transactionalEntityManager.save(CheckPlanRunLog, log)
+              })
+  
+              this.logger.log(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划成功`, 'ScheduledTask')
+              break;
+            } catch (error) {
+              retries--
 
-            this.logger.log(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划成功`, 'ScheduledTask')
-          } catch (error) {
-             // 创建失败日志
-            const log = new CheckPlanRunLog()
-            log.runResult = 0
-            log.description = error.message
-            log.checkPlanId = newPlan.id
-            await this.logRepository.save(log)
-            this.logger.error(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划失败`, 'ScheduledTask')
+              if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 2000)) // 如果失败，则两秒钟后重试
+              } else {
+                // 创建失败日志
+                const log = new CheckPlanRunLog()
+                log.runResult = 0
+                log.description = error.message
+                log.checkPlanId = newPlan.id
+                await this.logRepository.save(log)
+                this.logger.error(`下发${newPlan.fullName}${this.getCheckTaskName(newPlan.cron)}计划失败`, 'ScheduledTask')
+              }
+            }
           }
         }, null, false, null, {execute: 'automatic'})
 

@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
+import * as si from 'systeminformation';
 
 async function bootstrap() {
   const logger: CustomLogger = new CustomLogger('main');
