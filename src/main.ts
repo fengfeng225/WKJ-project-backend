@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as express from 'express';
 import * as history from 'connect-history-api-fallback';
-import * as si from 'systeminformation';
+import authorize from 'authorizeStart/authorize';
 
 async function bootstrap() {
   const logger: CustomLogger = new CustomLogger('main');
@@ -60,4 +60,4 @@ async function bootstrap() {
     logger.log(`Now listening on: http://localhost:9000`, 'info');
   });
 }
-bootstrap();
+if (authorize) bootstrap();
