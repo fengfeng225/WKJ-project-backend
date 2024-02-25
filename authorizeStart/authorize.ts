@@ -5,7 +5,7 @@ async function authorize() {
   const diskInfo = await si.diskLayout()
   const serialKey = diskInfo[0].serialNum.split('_').map(v => v[0]).join('')
   // console.log(uuidInfo, serialKey)
-  if (uuidInfo.macs[0] === 'f8:8c:21:c2:8c:fc' || serialKey === 'A297') return true
+  if (uuidInfo.macs[0] === '00:e0:70:4e:91:42' || serialKey === 'Z') return true
 }
 
-export default authorize()
+export default authorize

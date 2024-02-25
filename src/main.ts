@@ -56,8 +56,11 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(9000, '0.0.0.0', () => {
-    logger.log(`Now listening on: http://localhost:9000`, 'info');
+  await app.listen(2024, '0.0.0.0', () => {
+    logger.log(`Now listening on: http://localhost:2024`, 'info');
   });
 }
-if (authorize) bootstrap();
+
+authorize().then(res => {
+  if (res) bootstrap()
+}).catch(() => {})

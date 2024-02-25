@@ -33,7 +33,7 @@ import { PipeCapModule } from './feature/bill/pipe-cap/pipe-cap.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'development' ? '.env.local' : '.env.prod',
+      envFilePath: process.env.NODE_ENV === 'development' ? '.env.local' : 'C:/Users/Administrator/env/.env.prod',
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
