@@ -14,7 +14,7 @@ export class KeyPointController {
 
   @ApiOperation({summary:"获取全部关键点"})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: 'btn_export'
   })
   @Get('all')
@@ -29,7 +29,7 @@ export class KeyPointController {
   @ApiQuery({name: 'pageSize', required: false})
   @ApiQuery({name: 'queryJson', required: false})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: null
   })
   @Get()
@@ -39,7 +39,7 @@ export class KeyPointController {
 
   @ApiOperation({summary:"新增关键点"})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: 'btn_add'
   })
   @Post()
@@ -49,7 +49,7 @@ export class KeyPointController {
 
   @ApiOperation({summary:"获取关键点信息"})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: 'btn_edit'
   })
   @Get(':id')
@@ -59,7 +59,7 @@ export class KeyPointController {
 
   @ApiOperation({summary:"修改关键点信息"})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: 'btn_edit'
   })
   @Put(':id')
@@ -69,7 +69,7 @@ export class KeyPointController {
 
   @ApiOperation({summary:"删除关键点"})
   @RequirePermission({
-    requireMenu: (context) => 'KeyPoint',
+    requireMenu: (context) => 'keyPoint',
     requireButton: 'btn_delete'
   })
   @Delete(':id')
