@@ -152,9 +152,9 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.softRemove(shortBill)
       const { id, ...basicInfo } = shortBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'short'}
+      await transactionalEntityManager.softRemove(shortBill)
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
   }
@@ -289,9 +289,9 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      await transactionalEntityManager.softRemove(longBill)
       const { id, ...basicInfo } = longBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'long'}
+      await transactionalEntityManager.softRemove(longBill)
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
     })
   }
