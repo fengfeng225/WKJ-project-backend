@@ -56,15 +56,15 @@ async function bootstrap() {
     });
   }
 
-  // await app.listen(2024, '0.0.0.0', () => {
-  //   logger.log(`Now listening on: http://0.0.0.0:2024`, 'info');
-  // });
-  await app.listen(9000, () => {
-    logger.log(`Now listening on: http://localhost:2024`, 'info');
+  await app.listen(2024, '0.0.0.0', () => {
+    logger.log(`Now listening on: http://0.0.0.0:2024`, 'info');
   });
 }
 
-// authorize().then(res => {
-//   if (res) bootstrap()
-// }).catch(() => {})
-bootstrap()
+if (process.env.NODE_ENV === 'development') {
+  bootstrap()
+} else {
+  authorize().then(res => {
+    if (res) bootstrap()
+  }).catch(() => {})
+}
