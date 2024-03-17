@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Query, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Put, Param, Query, Delete } from '@nestjs/common';
 import { ClassService } from './class.service';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
@@ -42,6 +42,13 @@ export class ClassController {
   @Put('checkRecord/fix/:id')
   fixRecord(@Param('id') id: string, @Body() fixRecordDto: FixRecordDto) {
     return this.classService.fixRecord(id, fixRecordDto);
+  }
+
+  // 角色拥有的班组列表
+  @ApiOperation({summary:"获取角色拥有的班组列表"})
+  @Get('forRoles')
+  findRolePermissionClass(@Request() req) {
+    return this.classService.findRolePermissionClass(req.user.userId, req.user.account);
   }
 
   // 班组基本信息

@@ -38,6 +38,34 @@ export class ClassService {
     return result;
   }
 
+  // 角色拥有的班组
+  async findRolePermissionClass(userId: string, account: string): Promise<{list: BillClass[]}> {
+    let list: BillClass[]
+    if (account === 'admin') {
+      list = await this.classRepository
+      .createQueryBuilder('class')
+      .leftJoinAndSelect('class.children', 'children')
+      .where('class.parentId IS NULL')
+      .orderBy('class.sortCode')
+      .addOrderBy('children.sortCode')
+      .getMany()
+    } else {
+      const flatClasses = await this.classRepository
+      .createQueryBuilder('class')
+      .innerJoin('role_class_relation', 'rcr', 'rcr.billClassId = class.id')
+      .innerJoin('user_role_relation', 'urr', 'urr.roleId = rcr.roleId')
+      .where('urr.userId = :userId', { userId })
+      .orderBy('class.sortCode')
+      .getMany();
+
+      list = this.buildClassTree(flatClasses)
+    }
+
+    return {
+      list
+    }
+  }
+
   // classBasic
   async findAllClass(keyword: string): Promise<{list: BillClass[]}> {
     const list = await this.classRepository

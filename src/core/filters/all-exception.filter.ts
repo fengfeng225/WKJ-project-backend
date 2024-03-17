@@ -16,9 +16,10 @@ export class AllExceptionFilter implements ExceptionFilter {
 
     // 添加异常日志
     const { method, path, body } = request;
-    const IPAddress = Array.isArray(request.headers['x-forwarded-for'])
+    const IPAddress = request.headers['x-forwarded-for'] ? (Array.isArray(request.headers['x-forwarded-for'])
     ? (request.headers['x-forwarded-for'] as string[])[0]
-    : request.headers['x-forwarded-for'];
+    : request.headers['x-forwarded-for']) : request.connection.remoteAddress
+    
     const userAgent = request.headers['user-agent']
 
     let userId: string | null, userName: string | null
