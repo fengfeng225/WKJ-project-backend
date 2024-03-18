@@ -25,4 +25,10 @@ export class HomeController {
   findCheckProgressList() {
     return this.homeService.findCheckProgressList();
   }
+
+  @ApiOperation({summary:"获取PDF文件列表"})
+  @Get('files')
+  findPDFFiles() {
+    return this.homeService.findPDFFiles();
+  }
 }

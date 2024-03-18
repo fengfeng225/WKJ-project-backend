@@ -72,6 +72,9 @@ export class MbService {
       query.andWhere(`name IN (:...devices)`, { devices: JSON.parse(queryJson) });
     }
 
+
+    query.orderBy('status')
+
     const total = await query.getCount();
     
     query.skip((currentPage - 1) * pageSize).take(pageSize);
@@ -208,6 +211,8 @@ export class MbService {
     if (queryJson) {
       query.andWhere(`name IN (:...devices)`, { devices: JSON.parse(queryJson) });
     }
+
+    query.orderBy('status')
 
     const total = await query.getCount();
     

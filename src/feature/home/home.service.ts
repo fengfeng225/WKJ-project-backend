@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as fs from 'fs';
 import { MbLong } from '../bill/mb/entities/mb-long.entity';
 import { MbShort } from '../bill/mb/entities/mb-short.entity';
 import { BillClass } from '../bill/class/entities/class.entity';
@@ -136,5 +137,22 @@ export class HomeService {
       list,
       totalCheck
     }
+  }
+
+  async findPDFFiles() {
+    const pdfDirectory = process.env.pdfPath
+
+    return new Promise((resolve, reject) => {
+      fs.readdir(pdfDirectory, (err, files) => {
+        if (err) {
+          reject(err);
+        } else {
+          const pdfFiles = files
+          .filter(file => file.endsWith('.pdf'))
+          .map(file => file.replace(/\.pdf$/, ''));
+          resolve(pdfFiles);
+        }
+      });
+    });
   }
 }
