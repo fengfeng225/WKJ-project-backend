@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
+import * as path from 'path';
 import { MbLong } from '../bill/mb/entities/mb-long.entity';
 import { MbShort } from '../bill/mb/entities/mb-short.entity';
 import { BillClass } from '../bill/class/entities/class.entity';
@@ -32,7 +34,10 @@ export class HomeService {
     @InjectRepository(OtherPoint)
     private readonly otherPointRepository:Repository<OtherPoint>,
     @InjectRepository(UndergroundSludgeOil)
-    private readonly sludgeOilRepository:Repository<UndergroundSludgeOil>
+
+    private readonly sludgeOilRepository:Repository<UndergroundSludgeOil>,
+
+    private readonly configService: ConfigService
   ){}
 
   private async getUserClassList(id: string, account: string): Promise<BillClass[]> {
@@ -140,7 +145,7 @@ export class HomeService {
   }
 
   async findPDFFiles() {
-    const pdfDirectory = process.env.pdfPath
+    const pdfDirectory = path.join(__dirname, this.configService.get<string>('pdfPath'))
 
     return new Promise((resolve, reject) => {
       fs.readdir(pdfDirectory, (err, files) => {
