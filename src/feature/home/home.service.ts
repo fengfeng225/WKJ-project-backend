@@ -145,7 +145,9 @@ export class HomeService {
   }
 
   async findPDFFiles() {
-    const pdfDirectory = path.join(__dirname, this.configService.get<string>('pdfPath'))
+    let pdfDirectory: string
+    if (process.env.NODE_ENV === 'development') pdfDirectory = this.configService.get<string>('pdfPath')
+    else pdfDirectory = path.join(__dirname, this.configService.get<string>('pdfPath'))
 
     return new Promise((resolve, reject) => {
       fs.readdir(pdfDirectory, (err, files) => {

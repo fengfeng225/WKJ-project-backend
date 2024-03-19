@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { CreatePipeCapDto } from './dto/create-pipe-cap.dto';
 import { UpdatePipeCapDto } from './dto/update-pipe-cap.dto';
 import { PipeCap } from './entities/pipe-cap.entity';
+import { BillClass } from '../class/entities/class.entity';
 
 @Injectable()
 export class PipeCapService {
   constructor(
     @InjectRepository(PipeCap)
-    private readonly pipeCapRepository:Repository<PipeCap>
+    private readonly pipeCapRepository:Repository<PipeCap>,
+    @InjectRepository(BillClass)
+    private readonly classRepository:Repository<BillClass>,
   ){}
 
   async findAllPipeCapBill() {
@@ -33,7 +36,14 @@ export class PipeCapService {
     }
 
     if (classId && +classId !== -1) {
-      query.andWhere(`classId = :classId`, {classId});
+      const classes = await this.classRepository
+      .createQueryBuilder('class')
+      .select('class.id')
+      .where('class.id = :classId OR class.parentId = :classId', {classId})
+      .getMany()
+      const classIds = classes.map(item => item.id)
+
+      query.andWhere(`classId IN (:...classIds)`, { classIds });
     }
 
     if (queryJson) {
