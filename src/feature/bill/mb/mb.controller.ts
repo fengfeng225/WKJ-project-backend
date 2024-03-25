@@ -1,4 +1,7 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { MbService } from './mb.service';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
@@ -11,6 +14,35 @@ import { RequirePermission } from 'src/decorators/require-permission';
 @Controller('admin/mb')
 export class MbController {
   constructor(private readonly mbService: MbService) {}
+
+  @ApiOperation({summary:"更新盲板流程图"})
+  // @RequirePermission({
+  //   requireMenu: (context) => ['shortBill', 'longBill'],
+  //   requireButton: 'btn_uploadImage'
+  // })
+  @Post('uploadImage/:id')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploadImages',
+      filename: (req, file, cb) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        return cb(null, `${randomName}${extname(file.originalname)}`);
+      }
+    })
+  }))
+  uploadFile(@Param('id') id: string, @UploadedFile(
+    new ParseFilePipe({
+    validators: [
+      new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 2 }),
+      new FileTypeValidator({ fileType: 'image/jpeg' || 'image/png' }),
+    ]
+  })) file: Express.Multer.File) {
+    console.log(id)
+    return { imageUrl: file.filename };
+  }
 
   // shortBill
   @ApiOperation({summary:"获取短期盲板"})
