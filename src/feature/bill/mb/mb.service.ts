@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource, EntityManager } from 'typeorm';
+import * as fs from 'fs';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
@@ -360,5 +361,52 @@ export class MbService {
   // 左边补零
   private leftFillZero(val: string, count: number): string {
     return new Array(count - val.length + 1).join('0') + val
+  }
+
+  // 上传图片
+  async uploadFile(id: string, type: string, name: string) {
+    let repository: Repository<MbShort | MbLong>    
+    if (type === 'shortBill') {
+      repository = this.shortRepository
+    } else if (type === 'longBill') {
+      repository = this.longRepository
+    } else {
+      throw new NotFoundException('type param not found')
+    }
+
+    const bill = await repository.findOne({
+      where: {
+        id
+      }
+    })
+    bill.workflowImage = name
+    await repository.save(bill)
+    
+    return {
+      imageUrl: name
+    }
+  }
+
+  // 删除图片
+  async removeFile(id: string, type: string) {
+    let repository: Repository<MbShort | MbLong>    
+    if (type === 'shortBill') {
+      repository = this.shortRepository
+    } else if (type === 'longBill') {
+      repository = this.longRepository
+    } else {
+      throw new NotFoundException('type param not found')
+    }
+
+    const bill = await repository.findOne({
+      where: {
+        id
+      }
+    })
+
+    let imageName: string = bill.workflowImage
+    bill.workflowImage = null
+    await repository.save(bill)
+    fs.renameSync(`./uploadFiles/images/${imageName}`, `./uploadFiles/deleteImages/${imageName}`);
   }
 }

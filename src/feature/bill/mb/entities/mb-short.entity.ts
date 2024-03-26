@@ -103,6 +103,13 @@ export class MbShort {
   })
   manager: string;
 
+  @Column({
+    length: 50,
+    nullable: true,
+    comment: '流程图'
+  })
+  workflowImage: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(0)', comment: '创建时间' })
   creatorTime: Date;
 

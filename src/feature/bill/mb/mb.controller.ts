@@ -15,15 +15,15 @@ import { RequirePermission } from 'src/decorators/require-permission';
 export class MbController {
   constructor(private readonly mbService: MbService) {}
 
-  @ApiOperation({summary:"更新盲板流程图"})
-  // @RequirePermission({
-  //   requireMenu: (context) => ['shortBill', 'longBill'],
-  //   requireButton: 'btn_uploadImage'
-  // })
-  @Post('uploadImage/:id')
+  @ApiOperation({summary:"上传盲板流程图"})
+  @RequirePermission({
+    requireMenu: (context) => ['shortBill', 'longBill'],
+    requireButton: 'btn_uploadImage'
+  })
+  @Post('uploadImage/:type/:id')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploadImages',
+      destination: './uploadFiles/images',
       filename: (req, file, cb) => {
         const randomName = Array(32)
           .fill(null)
@@ -34,7 +34,7 @@ export class MbController {
     }),
     fileFilter: (req, file, cb) => {
       if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-        return cb(new BadRequestException('只允许上传jpg、jpeg或png格式的图片！'), false);
+        return cb(new BadRequestException('只允许上传jpg或png格式的图片！'), false);
       }
       cb(null, true);
     },
@@ -43,9 +43,18 @@ export class MbController {
       files: 1
     }
   }))
-  uploadFile(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    console.log(id)
-    return { imageUrl: file.filename };
+  uploadFile(@Param() params: any, @UploadedFile() file: Express.Multer.File) {
+    return this.mbService.uploadFile(params.id, params.type, file.filename)
+  }
+
+  @ApiOperation({summary:"删除盲板流程图"}) // 实际移动到deleteImages文件夹下
+  @RequirePermission({
+    requireMenu: (context) => ['shortBill', 'longBill'],
+    requireButton: 'btn_uploadImage'
+  })
+  @Delete('uploadImage/:type/:id')
+  removeFile(@Param() params: any) {
+    return this.mbService.removeFile(params.id, params.type)
   }
 
   // shortBill

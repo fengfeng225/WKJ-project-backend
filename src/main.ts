@@ -39,6 +39,10 @@ async function bootstrap() {
     app.use(express.static(path.join(__dirname, '..', 'public')))
   }
 
+  // 开发临时测试使用
+  app.use(history());
+  app.use(express.static(path.join(__dirname, '../../')))
+
   // 配置swagger仅在开发环境启用
   if (swaggerEnabled) {
     const options = new DocumentBuilder()
