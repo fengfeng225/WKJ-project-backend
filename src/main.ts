@@ -12,11 +12,10 @@ import authorize from 'authorizeStart/authorize';
 
 async function bootstrap() {
   const logger: CustomLogger = new CustomLogger('main');
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true
   });
-
+  
   // 全局管道
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
@@ -29,7 +28,7 @@ async function bootstrap() {
   // app.enableCors();
 
   const configService = app.get(ConfigService)
-  
+
   const historyRouter = JSON.parse(configService.get('HISTORY_ROUTER'))
   const swaggerEnabled = JSON.parse(configService.get('SWAGGER_ENABLED'))
 
@@ -40,8 +39,8 @@ async function bootstrap() {
   }
 
   // 开发临时测试使用
-  app.use(history());
-  app.use(express.static(path.join(__dirname, '../../')))
+  // app.use(history());
+  // app.use(express.static(path.join(__dirname, '../../')))
 
   // 配置swagger仅在开发环境启用
   if (swaggerEnabled) {

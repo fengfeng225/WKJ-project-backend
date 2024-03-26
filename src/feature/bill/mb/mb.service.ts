@@ -1,7 +1,9 @@
 import { ConflictException, NotFoundException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, DataSource, EntityManager } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
+import * as path from 'path';
 import { CreateMbDto } from './dto/create-mb.dto';
 import { UpdateMbDto } from './dto/update-mb.dto';
 import { CreateDisassemblyDto } from './dto/create-disassembly.dto';
@@ -21,9 +23,13 @@ export class MbService {
     private readonly disassemblyRepository:Repository<MbDisassembly>,
     @InjectRepository(BillClass)
     private readonly classRepository:Repository<BillClass>,
-    private dataSource: DataSource
+    private dataSource: DataSource,
+    private readonly configService: ConfigService
   ){}
 
+  private imagePath = process.env.NODE_ENV === 'development' ? this.configService.get<string>('imagePath') : path.join(__dirname, this.configService.get<string>('imagePath'))
+  private deletedImagePath = process.env.NODE_ENV === 'development' ? this.configService.get<string>('deletedImagePath') : path.join(__dirname, this.configService.get<string>('deletedImagePath'))
+  
   // shortBill
   async createShortBill(createMbDto: CreateMbDto) {
     // 编号长度小于3，用0补齐
@@ -156,10 +162,15 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      const { id, ...basicInfo } = shortBill
+      const { id, workflowImage, ...basicInfo } = shortBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'short'}
       await transactionalEntityManager.softRemove(shortBill)
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+      try {
+        fs.renameSync(`${this.imagePath}/${workflowImage}`, `${this.deletedImagePath}/${workflowImage}`);
+      } catch (error) {
+        
+      }
     })
   }
 
@@ -295,10 +306,15 @@ export class MbService {
     })
     // 事务
     await this.dataSource.transaction(async (transactionalEntityManager) => {
-      const { id, ...basicInfo } = longBill
+      const { id, workflowImage, ...basicInfo } = longBill
       const disassemblyInfo = {...basicInfo, disassembleTime: creatorTime, remark: '删除', cycleType: 'long'}
       await transactionalEntityManager.softRemove(longBill)
       await this.addDisassembly(disassemblyInfo, transactionalEntityManager)
+      try {
+        fs.renameSync(`${this.imagePath}/${workflowImage}`, `${this.deletedImagePath}/${workflowImage}`);
+      } catch (error) {
+        
+      }
     })
   }
 
@@ -309,7 +325,7 @@ export class MbService {
     pageSize = 20,
     currentPage = 1
   }): Promise<{ list: MbDisassembly[], pagination: { total: number, pageSize: number, pageIndex: number } }> {
-    const query = this.disassemblyRepository.createQueryBuilder('disassembly').orderBy("disassembly.creatorTime", "DESC");
+    const query = this.disassemblyRepository.createQueryBuilder('disassembly').orderBy("disassembly.disassembleTime", "DESC");
     
     if (keyword) {
       query.andWhere(`code LIKE :keyword`, { keyword: `%${keyword}%` });
@@ -407,6 +423,10 @@ export class MbService {
     let imageName: string = bill.workflowImage
     bill.workflowImage = null
     await repository.save(bill)
-    fs.renameSync(`./uploadFiles/images/${imageName}`, `./uploadFiles/deleteImages/${imageName}`);
+    try {
+      fs.renameSync(`${this.imagePath}/${imageName}`, `${this.deletedImagePath}/${imageName}`);
+    } catch (error) {
+      
+    }
   }
 }

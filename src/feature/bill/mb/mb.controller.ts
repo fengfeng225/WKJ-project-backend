@@ -23,7 +23,7 @@ export class MbController {
   @Post('uploadImage/:type/:id')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploadFiles/images',
+      destination: process.env.NODE_ENV === 'development' ? './uploadFiles/images' : './public/uploadFiles/images',
       filename: (req, file, cb) => {
         const randomName = Array(32)
           .fill(null)
