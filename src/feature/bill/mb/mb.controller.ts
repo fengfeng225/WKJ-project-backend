@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -31,15 +31,19 @@ export class MbController {
           .join('');
         return cb(null, `${randomName}${extname(file.originalname)}`);
       }
-    })
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+        return cb(new BadRequestException('只允许上传jpg、jpeg或png格式的图片！'), false);
+      }
+      cb(null, true);
+    },
+    limits: {
+      fileSize: 2 * 1024 * 1024, // 2MB
+      files: 1
+    }
   }))
-  uploadFile(@Param('id') id: string, @UploadedFile(
-    new ParseFilePipe({
-    validators: [
-      new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 2 }),
-      new FileTypeValidator({ fileType: 'image/jpeg' || 'image/png' }),
-    ]
-  })) file: Express.Multer.File) {
+  uploadFile(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     console.log(id)
     return { imageUrl: file.filename };
   }
